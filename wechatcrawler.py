@@ -29,8 +29,6 @@ class WebcatCrawler:
     爬取 wx.abbao.cn站点的微信公众号
     '''
 
-
-
     def __init__(self, name, lv):
         self.lv = lv
         self.name = name

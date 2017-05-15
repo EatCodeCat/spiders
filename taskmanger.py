@@ -2,7 +2,7 @@
 __author__ = 'think'
 from wechatcrawler import WebcatCrawler
 
-from  mongodao import mongoclient
+from mongodao import mongoclient
 
 contents_dao = mongoclient.MClient('mini_show_db', 'contents')
 
@@ -20,4 +20,5 @@ def crawl_all_wechat_task():
             contents_dao.insert_one(it)
 
 
-crawl_all_wechat_task()
+if __name__ == '__main__':
+    crawl_all_wechat_task()
