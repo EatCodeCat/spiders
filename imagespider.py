@@ -26,10 +26,6 @@ class JandanImageCrawler:
         self.spider = WebSpider(headers)
         self.__host__ = 'http://jandan.net/'
 
-    # // wx2.sinaimg.cn / thumb180 / 63861
-    # dc0gy1ffm5l7eve6g209q069qv5.gif
-    # // wx2.sinaimg.cn / mw690 / 63861
-    # dc0gy1ffm5l7eve6g209q069qv5.gif
     def do_crawle(self, url):
         list = self.imgecrawler(url)
         return list;
@@ -37,13 +33,53 @@ class JandanImageCrawler:
     def imgecrawler(self, url):
         text = self.spider.get_text(url);
         soup = BeautifulSoup(text, 'lxml');
-        list = soup.select("#comments .commentlist li p");
+        list = soup.select("#comments .commentlist li");
+
+        sList = []
         for li in list:
-            a = li.find('a')
+            a = li.find(class_='view_img_link')
             img = li.find('img')
-            print(a['href'], img['src'])
+            timeStr = li.find(class_='author').find('a').string.lower();
+            m = re.match(r'@(\d+) month ago', timeStr)
+            cdate = datetime.now()
+            if m is not None:
+                cdate = cdate.replace(month= cdate.month - int(m.group(1)))
+            else:
+                m = re.match(r'/i@(\d+) days ago', timeStr)
+                if m is not None:
+                    cdate = cdate.replace(day=cdate.day - int(m.group(1)));
+                else:
+                    m = re.match(r'/i@(\d+) hours ago', timeStr)
+                    if m is not None:
+                        cdate = cdate.replace(day=cdate.day - int(m.group(1)));
+                    else:
+                        m = re.match(r'/i@(\d+) mins ago', timeStr)
+                        if m is not None:
+                            cdate = cdate.replace(minute=cdate.minute - int(m.group(1)));
+                        else:
+                            m = re.match(r'/i@(\d+) weeks ago', timeStr)
+                            if m is not None:
+                                cdate = cdate.replace(day=cdate.day - int(m.group(1))*7);
+
+
+            item = {
+                'list_url': url,
+                'warning_lv': self.lv,
+                'title': '',
+                'author': self.name,
+                'thumbnail': img['src'],
+                'mainPic': a['href'],
+                'tag': '',
+                'from_website': self.__host__,
+                'create_time': datetime.now(),
+                'play_count': 0,
+                'desc': '',
+                'content_time': cdate
+            }
+            sList.append(item)
+        return sList;
 
 
 if __name__ == '__main__':
     jd = JandanImageCrawler('煎蛋网', 3)
-    jd.do_crawle('http://jandan.net/ooxx/page-55')
+    jd.do_crawle('http://jandan.net/ooxx/page-10')
