@@ -61,14 +61,19 @@ class JandanImageCrawler:
                             if m is not None:
                                 cdate = cdate.replace(day=cdate.day - int(m.group(1))*7);
 
+            thumbnail = img['src']
+            mainPic = a['href']
+
+            if thumbnail.endswith('gif'):
+                mainPic = thumbnail.replace('thumb180', 'mw690')
 
             item = {
                 'list_url': url,
                 'warning_lv': self.lv,
                 'title': '',
                 'author': self.name,
-                'thumbnail': img['src'],
-                'mainPic': a['href'],
+                'thumbnail': thumbnail,
+                'mainPic': mainPic,
                 'tag': '',
                 'from_website': self.__host__,
                 'create_time': datetime.now(),
@@ -77,9 +82,10 @@ class JandanImageCrawler:
                 'content_time': cdate
             }
             sList.append(item)
-        return sList;
+        return sList
 
 
 if __name__ == '__main__':
     jd = JandanImageCrawler('煎蛋网', 3)
-    jd.do_crawle('http://jandan.net/ooxx/page-10')
+    li = jd.do_crawle('http://jandan.net/ooxx/page-10')
+    print(li)
