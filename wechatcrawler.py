@@ -7,15 +7,11 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime
 from datetime import date
+from crawler import Crawler
 
 date_pattern = re.compile(r'(\d+)月(\d+)日')
 
-headers = {
-    'referer': 'http://wx.abbao.cn/wu/89d90ad43c9e4889.html',
-    'Host': 'wx.abbao.cn',
-    'Upgrade-Insecure-Requests': "1",
-    'cookie': '__cfduid=d6ba247ce04c41e697a314f8ae7b86f471493906917; Hm_lvt_58ea004dc0522057209aba54c622e023=1493906904; Hm_lpvt_58ea004dc0522057209aba54c622e023=1493906904; __utma=143276005.667657622.1493906905.1493906905.1493906905.1; __utmc=143276005; __utmz=143276005.1493906905.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); Hm_lvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493909038; Hm_lpvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493911728'
-}
+
 
 
 def get_arr_frist_el(arr):
@@ -24,7 +20,7 @@ def get_arr_frist_el(arr):
     return {'string': ''}
 
 
-class WebcatCrawler:
+class WebcatCrawler(Crawler):
     '''
     爬取 wx.abbao.cn站点的微信公众号
     '''
@@ -32,18 +28,23 @@ class WebcatCrawler:
     def __init__(self, name, lv):
         self.lv = lv
         self.name = name
-        self.spider = WebSpider(headers)
         self.__host__ = 'http://wx.abbao.cn'
+        self.headers = {
+            'referer': 'http://wx.abbao.cn/wu/89d90ad43c9e4889.html',
+            'Host': 'wx.abbao.cn',
+            'Upgrade-Insecure-Requests': "1",
+            'cookie': '__cfduid=d6ba247ce04c41e697a314f8ae7b86f471493906917; Hm_lvt_58ea004dc0522057209aba54c622e023=1493906904; Hm_lpvt_58ea004dc0522057209aba54c622e023=1493906904; __utma=143276005.667657622.1493906905.1493906905.1493906905.1; __utmc=143276005; __utmz=143276005.1493906905.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); Hm_lvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493909038; Hm_lpvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493911728'
+        }
 
     def do_crawle(self, url):
         list = self.__webchatCrawler(url)
-        return list;
+        return list
 
     def __webchatCrawler(self, url):
         self.spider.set_headers({'referer': url})
         txt = self.spider.get_text(url)
         list = self.__parse_list_text(txt)
-        return list;
+        return list
 
     def __detail_parser(self, txt):
         soup = BeautifulSoup(txt, 'lxml')
