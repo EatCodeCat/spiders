@@ -77,9 +77,8 @@ class WebcatCrawler(Crawler):
             self.cur_item['content'] = detail_txt
             yield self.cur_item
 
-def persistent(items):
 
+def persistent(items):
     contents_dao = mongoclient.MClient('mini_show_db', 'contents')
     for it in items:
-        print (it)
-        #contents_dao.insert_one(it)
+        contents_dao.insert_one(it)

@@ -69,3 +69,7 @@ class UrlManager:
 
     def done(self):
         return self.sucesscrawlist, self.failcrawlist
+
+
+if __name__ == '__main__':
+    pass

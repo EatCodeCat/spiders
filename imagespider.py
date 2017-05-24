@@ -30,7 +30,7 @@ class JandanImageCrawler:
         list = self.imgecrawler(url)
         return list;
 
-    def imgecrawler(self, url):
+    def parse(self, url):
         text = self.spider.get_text(url);
         soup = BeautifulSoup(text, 'lxml');
         list = soup.select("#comments .commentlist li");
@@ -43,7 +43,7 @@ class JandanImageCrawler:
             m = re.match(r'@(\d+) month ago', timeStr)
             cdate = datetime.now()
             if m is not None:
-                cdate = cdate.replace(month= cdate.month - int(m.group(1)))
+                cdate = cdate.replace(month=cdate.month - int(m.group(1)))
             else:
                 m = re.match(r'/i@(\d+) days ago', timeStr)
                 if m is not None:
@@ -59,7 +59,7 @@ class JandanImageCrawler:
                         else:
                             m = re.match(r'/i@(\d+) weeks ago', timeStr)
                             if m is not None:
-                                cdate = cdate.replace(day=cdate.day - int(m.group(1))*7);
+                                cdate = cdate.replace(day=cdate.day - int(m.group(1)) * 7);
 
             thumbnail = img['src']
             mainPic = a['href']

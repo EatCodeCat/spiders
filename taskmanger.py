@@ -43,8 +43,7 @@ def crawl_all_wechat_task():
 
     wc = WebcatCrawler('麦格时光', 0, murl)
     list = wc.docrawel()
-    print (len(list))
-    #persistent(list)
+    persistent(list)
 
 
 def craw_all_jandanimage_task():
