@@ -18,6 +18,10 @@ class WebSpider:
         r = requests.get(url, headers=self.headers)
         return r.text
 
+    def get(self, url):
+        r = requests.get(url, headers=self.headers)
+        return r
+
     def set_headers(self, item):
         self.headers = dict(self.headers, **item)
 
