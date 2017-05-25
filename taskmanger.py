@@ -6,7 +6,6 @@ from mongodao import mongoclient
 from urlmanager import UrlManager,UrlItem
 
 contents_dao = mongoclient.MClient('mini_show_db', 'contents')
-
 image_ontents_dao = mongoclient.MClient('mini_show_db', 'image_contents')
 
 crawl_task = {
