@@ -11,9 +11,6 @@ class CrawlStatus(Enum):
 
 
 class UrlItem:
-    '''
-        status 0 成功， 1 未爬取， 2 失败
-    '''
 
     def __init__(self, url, crawl_count=0, status=CrawlStatus.uncrawl, crawl_time=None):
 
@@ -30,7 +27,6 @@ class UrlItem:
 
     def get_dict(self):
         return self.__dict__
-
 
 
 
