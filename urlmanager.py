@@ -12,12 +12,13 @@ class CrawlStatus(Enum):
 
 class UrlItem:
 
-    def __init__(self, url, crawl_count=0, status=CrawlStatus.uncrawl, crawl_time=None):
+    def __init__(self, url, crawl_count=0, status=CrawlStatus.uncrawl, crawl_time=None, taskcls=''):
 
         self.url = url
         self.crawl_time = crawl_time
         self.crawl_count = crawl_count
         self.status = status
+        self.taskcls = taskcls
 
     def __eq__(self, other):
         if isinstance(other, UrlItem):
@@ -26,12 +27,13 @@ class UrlItem:
             return False
 
     def get_dict(self):
-        return self.__dict__
+         self.__dict__['status'] = self.__dict__['status'].value
+         return self.__dict__
 
 
 
 class UrlManager:
-    def __init__(self, name, crawllist=deque(), reportprocess=True):
+    def __init__(self, crawllist=deque(),name='', reportprocess=True):
         self.crawllist = crawllist
         self.failcrawlist = []
         self.sucesscrawlist = []
@@ -77,9 +79,9 @@ class UrlManager:
     def repeat_cur_url(self):
         self.crawllist.append(self.curUrl);
 
-    def done_save(self):
+    def done(self):
         log.logmsg(self.name + ':done')
-        return self.sucesscrawlist, self.failcrawlist
+        return self.sucesscrawlist + self.failcrawlist
 
 
 if __name__ == '__main__':

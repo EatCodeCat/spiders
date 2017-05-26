@@ -12,5 +12,8 @@ class MClient:
 
     def insert_one(self, entity):
         self.collection.insert_one(entity)
+    
+    def find(self):
+        return self.collection.find()
 
 

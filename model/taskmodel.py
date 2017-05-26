@@ -1,9 +1,9 @@
-
 from mongodao import mongoclient
-task_dao = mongoclient.MClient('mini_task_db', 'url_tasks')
+
+task_dao = mongoclient.MClient('mini_task_db', 'crawl_tasks')
 
 crawl_task = {
-    'urlitem': [{
+    'urlitems': [{
         'url': '',
         'referer': '',
         'crawl_time': '',
@@ -20,18 +20,17 @@ crawl_task = {
     'remark': '',
     'headers': {},
     'interval': '',
-    'loop_type': 0 #重复类型 0 间隔时间，1，定点时间重复
+    'loop_type': 0  # 重复类型 0 间隔时间，1，定点时间重复
 }
+
 
 def insert_one(item):
     task_dao.insert_one(item)
 
+
 def insert_urlitem(taskId):
-    task_dao.find_(item)
+    task_dao.find_one_and_update({'taskId': taskId},)
+
 
 def get_all_tasks():
     return task_dao.find()
-
-
-
-
