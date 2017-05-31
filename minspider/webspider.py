@@ -1,6 +1,5 @@
-# coding=utf-8
-__author__ = 'think'
 import requests
+import logging
 
 
 class WebSpider:
@@ -13,17 +12,17 @@ class WebSpider:
         }
         self.headers = dict(self.headers, **headers)
 
-
     def get_text(self, url):
+        logging.debug(url)
+
         r = requests.get(url, headers=self.headers)
         return r.text
 
     def get(self, url):
+        logging.debug(url)
+
         r = requests.get(url, headers=self.headers)
         return r
 
     def set_headers(self, item):
         self.headers = dict(self.headers, **item)
-
-
-

@@ -1,13 +1,16 @@
 import time
+import asyncio
 
 
-class Task:
-    def __init__(self):
-        self.message = "shell"
-
-
-t = Task()
-print(Task.__base__ == object)
+async def asyncic():
+    print('async 1')
+    await print('async 2')
 
 
 
+
+
+asyncio.ensure_future(asyncic())
+loop = asyncio.get_event_loop()
+loop.run_forever()
+print('async end')

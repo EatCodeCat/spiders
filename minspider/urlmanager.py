@@ -11,7 +11,6 @@ class CrawlStatus(Enum):
 
 
 class UrlItem:
-
     def __init__(self, url, crawl_count=0, status=CrawlStatus.uncrawl, crawl_time=None, taskcls=''):
 
         self.url = url
@@ -27,13 +26,12 @@ class UrlItem:
             return False
 
     def get_dict(self):
-         self.__dict__['status'] = self.__dict__['status'].value
-         return self.__dict__
-
+        self.__dict__['status'] = self.__dict__['status'].value
+        return self.__dict__
 
 
 class UrlManager:
-    def __init__(self, crawllist=deque(),name='', reportprocess=True):
+    def __init__(self, crawllist=deque(), name='', reportprocess=True):
         self.crawllist = crawllist
         self.failcrawlist = []
         self.sucesscrawlist = []
