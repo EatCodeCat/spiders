@@ -1,14 +1,12 @@
 import re
 from datetime import datetime
 
-from minspider import Crawler
+from task.basecrawler import BaseCrawler
 
 
-class JandanImageCrawler(Crawler):
-    def __init__(self, name, lv, urlmanager, perist):
-        self.lv = lv
-        self.name = name
-        self.__host__ = 'http://jandan.net/'
+class JandanImageCrawler(BaseCrawler):
+    def __init__(self, task_item, urlmanager, perist):
+        super().__init__(task_item, urlmanager, perist)
         self.headers = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Encoding": "gzip, deflate, sdch",
@@ -21,7 +19,6 @@ class JandanImageCrawler(Crawler):
             "Upgrade-Insecure-Requests": "1",
             "User-Agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
         }
-        super().__init__(urlmanager, perist)
 
     def parse(self, response):
         soup = super().parse(response)
@@ -31,7 +28,7 @@ class JandanImageCrawler(Crawler):
         for li in list:
             a = li.find(class_='view_img_link')
             img = li.find('img')
-            timeStr = li.find(class_='author').find('a').string.lower();
+            timeStr = li.find(class_='author').find('a').string.lower()
             m = re.match(r'@(\d+) month ago', timeStr)
             cdate = datetime.now()
             if m is not None:
@@ -39,19 +36,19 @@ class JandanImageCrawler(Crawler):
             else:
                 m = re.match(r'/i@(\d+) days ago', timeStr)
                 if m is not None:
-                    cdate = cdate.replace(day=cdate.day - int(m.group(1)));
+                    cdate = cdate.replace(day=cdate.day - int(m.group(1)))
                 else:
                     m = re.match(r'/i@(\d+) hours ago', timeStr)
                     if m is not None:
-                        cdate = cdate.replace(day=cdate.day - int(m.group(1)));
+                        cdate = cdate.replace(day=cdate.day - int(m.group(1)))
                     else:
                         m = re.match(r'/i@(\d+) mins ago', timeStr)
                         if m is not None:
-                            cdate = cdate.replace(minute=cdate.minute - int(m.group(1)));
+                            cdate = cdate.replace(minute=cdate.minute - int(m.group(1)))
                         else:
                             m = re.match(r'/i@(\d+) weeks ago', timeStr)
                             if m is not None:
-                                cdate = cdate.replace(day=cdate.day - int(m.group(1)) * 7);
+                                cdate = cdate.replace(day=cdate.day - int(m.group(1)) * 7)
 
             thumbnail = img['src']
             mainPic = a['href']

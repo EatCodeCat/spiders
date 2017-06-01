@@ -1,34 +1,28 @@
 # coding=utf-8
 __author__ = 'think'
-
 import re
 from datetime import date
 from datetime import datetime
 
-from minspider.crawler import Crawler
 from mongodao import mongoclient
+from task.basecrawler import BaseCrawler
 
 date_pattern = re.compile(r'(\d+)月(\d+)日')
 
 
-class WebcatCrawler(Crawler):
+class WebcatCrawler(BaseCrawler):
     '''
     爬取 wx.abbao.cn站点的微信公众号
     '''
 
-    def __init__(self, name, lv, urlmanager, perist):
-        self.lv = lv
-        self.urlmanager = urlmanager
-        self.name = name
-        self.__host__ = 'http://wx.abbao.cn'
+    def __init__(self, task_item, urlmanager, perist):
+        super().__init__(task_item, urlmanager, perist)
         self.headers = {
             'referer': 'http://wx.abbao.cn/wu/89d90ad43c9e4889.html',
             'Host': 'wx.abbao.cn',
             'Upgrade-Insecure-Requests': "1",
             'cookie': '__cfduid=d6ba247ce04c41e697a314f8ae7b86f471493906917; Hm_lvt_58ea004dc0522057209aba54c622e023=1493906904; Hm_lpvt_58ea004dc0522057209aba54c622e023=1493906904; __utma=143276005.667657622.1493906905.1493906905.1493906905.1; __utmc=143276005; __utmz=143276005.1493906905.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); Hm_lvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493909038; Hm_lpvt_5a0dc5f0063da06a17d0ae7f64c9d1c6=1493911728'
         }
-
-        super().__init__(urlmanager, perist)
 
     def detail_parser(self, response):
         soup = self.response_txt_soup(response)
@@ -77,7 +71,7 @@ class WebcatCrawler(Crawler):
             self.cur_item['content'] = detail_txt
             yield self.cur_item
 
-    def persistent(self, items):
+    def item_persistence(self, items):
         contents_dao = mongoclient.MClient('mini_show_db', 'contents')
         for it in items:
             contents_dao.insert_one(it)

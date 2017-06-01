@@ -1,16 +1,15 @@
-import time
-import asyncio
+a  = dict()
 
 
-async def asyncic():
-    print('async 1')
-    await print('async 2')
+a.__getattribute__ = lambda self, name: self[name]
+
+
+a['a'] = 111
 
 
 
 
 
-asyncio.ensure_future(asyncic())
-loop = asyncio.get_event_loop()
-loop.run_forever()
-print('async end')
+
+
+

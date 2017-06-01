@@ -28,9 +28,5 @@ def insert_one(item):
     task_dao.insert_one(item)
 
 
-def insert_urlitem(taskId):
-    task_dao.find_one_and_update({'taskId': taskId},)
-
-
 def get_all_tasks():
     return task_dao.find()

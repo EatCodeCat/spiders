@@ -1,23 +1,22 @@
 from collections import deque
-import log
+import logging
 from enum import Enum
 from datetime import datetime
 
 
 class CrawlStatus(Enum):
-    uncrawl = 1
-    fail = 2
-    success = 0
+    UN_CRAWL = 1
+    CRAWL_FAIL = 2
+    CRAWL_SUCCESS = 0
 
 
 class UrlItem:
-    def __init__(self, url, crawl_count=0, status=CrawlStatus.uncrawl, crawl_time=None, taskcls=''):
+    def __init__(self, url, crawl_count=0, status=CrawlStatus.UN_CRAWL, crawl_time=None):
 
         self.url = url
         self.crawl_time = crawl_time
         self.crawl_count = crawl_count
         self.status = status
-        self.taskcls = taskcls
 
     def __eq__(self, other):
         if isinstance(other, UrlItem):
@@ -26,25 +25,24 @@ class UrlItem:
             return False
 
     def get_dict(self):
-        self.__dict__['status'] = self.__dict__['status'].value
-        return self.__dict__
+        temp = self.__dict__.copy()
+        temp['status'] = self.__dict__['status'].value
+        return temp
 
 
 class UrlManager:
-    def __init__(self, crawllist=deque(), name='', reportprocess=True):
-        self.crawllist = crawllist
-        self.failcrawlist = []
-        self.sucesscrawlist = []
+    def __init__(self, crawl_list=deque(), name=''):
+        self.crawl_list = crawl_list
+        self.fail_craw_list = []
+        self.success_crawl_list = []
         self.name = name
-        self.curUrl = None
-        self.reportprocess = reportprocess
-        self.log = log
+        self.cur_item = None
         self.is_fail = False
 
-    def push_crawlurl(self, url_item):
+    def push_crawl_url(self, url_item):
 
-        if url_item not in self.crawllist:
-            self.crawllist.append(url_item)
+        if url_item not in self.crawl_list:
+            self.crawl_list.append(url_item)
             return True
         else:
             return False
@@ -53,33 +51,39 @@ class UrlManager:
         return self  # 实例本身就是迭代对象，故返回自己
 
     def __next__(self):
-        if not self.is_fail:
-            self.sucesscrawlist.append(self.curUrl)
-
-        length = len(self.crawllist)
-        if length > 0:
-            self.curItem = self.crawllist.popleft()
-            self.curItem.crawl_count += 1
-            self.curItem.crawl_time = datetime.now()
-
-            if self.reportprocess:
-                log.logmsg('index (%s)-%s' % (length, self.curItem.url))
-
-            return self.curItem
+        item = self.get_a_crawl_item()
+        if item is not None:
+            return self.cur_item
         else:
             raise StopIteration()
 
+    def get_a_crawl_item(self):
+        if not self.is_fail and self.cur_item is not None:
+            self.success_crawl_list.append(self.cur_item)
+        length = len(self.crawl_list)
+        if length > 0:
+            self.cur_item = self.crawl_list.popleft()
+            self.cur_item.crawl_count += 1
+            self.cur_item.crawl_time = datetime.now()
+            print('index (%s)-%s' % (length, self.cur_item.url))
+            return self.cur_item
+
     def cur_url_is_fail(self):
-        self.curItem.status = CrawlStatus.fail
-        self.failcrawlist.append(self.curItem)
+        self.cur_item.status = CrawlStatus.CRAWL_FAIL
+        self.fail_craw_list.append(self.cur_item)
         self.is_fail = True
 
     def repeat_cur_url(self):
-        self.crawllist.append(self.curUrl);
+        self.crawl_list.append(self.curUrl)
 
     def done(self):
-        log.logmsg(self.name + ':done')
-        return self.sucesscrawlist + self.failcrawlist
+
+        logging.debug("done")
+
+        if len(self.crawl_list) > 0:
+            logging.warning('还有未爬取url任务!')
+
+        return self.success_crawl_list + self.fail_craw_list
 
 
 if __name__ == '__main__':

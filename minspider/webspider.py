@@ -20,7 +20,6 @@ class WebSpider:
 
     def get(self, url):
         logging.debug(url)
-
         r = requests.get(url, headers=self.headers)
         return r
 

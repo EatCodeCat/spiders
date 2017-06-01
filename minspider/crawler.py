@@ -1,13 +1,12 @@
 import traceback
 from collections import Iterable
-
 from bs4 import BeautifulSoup
-
-from minspider.webspider import WebSpider
+from .webspider import WebSpider
+from .peristent import Peristenter
 
 
 class Crawler:
-    def __init__(self, urlmanager, perist):
+    def __init__(self, urlmanager, perist=Peristenter()):
         self.urlmanager = urlmanager
         self.headers = {}
         self.spider = WebSpider(self.headers)
@@ -16,7 +15,7 @@ class Crawler:
         self.cur_item = {}
         self.perist = perist
 
-    def docrawel(self):
+    def do_crawl(self):
         for urlitem in self.urlmanager:
             try:
                 response = self.spider.get(urlitem.url)
@@ -24,13 +23,18 @@ class Crawler:
                 if isinstance(items, Iterable):
                     for it in items:
                         self.items.append(it)
+                else:
+                    self.items = items
             except Exception as e:
                 exstr = traceback.format_exc()
                 print(exstr)
                 self.urlmanager.cur_url_is_fail()
+        done_result = self.urlmanager.done()
+        self.item_persistence(self.items)
+        self.url_item_persistence(done_result)
         return self.items
 
-    def request(self, url,  callback, method='GET'):
+    def request(self, url, callback, method='GET'):
         response = self.spider.get(url)
         if hasattr(callback, '__call__'):
             return callback(response)
@@ -50,6 +54,13 @@ class Crawler:
             return arr[0]
         return {'string': ''}
 
-    def persistent(self, items):
+    def item_persistence(self, items):
         for it in items:
-            self.perist.working(it)
+            self.perist.item_save(it)
+
+    def url_item_persistence(self, items):
+        if isinstance(items, Iterable):
+            for it in items:
+                self.perist.url_item_save(it)
+        else:
+            self.perist.url_item_save(items)

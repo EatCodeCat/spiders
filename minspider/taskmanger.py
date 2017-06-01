@@ -9,13 +9,15 @@ class TaskManager:
         self.deque_task = deque_task
 
     def do_task(self):
+
+        def task_done(_task, _th):
+            _task.item_persistence(_th.result())
+
         for task in self.deque_task:
             if isinstance(task, Crawler):
-                th = self.pool.submit(task.docrawel)
-                th.add_done_callback(lambda a: task.persistent(th.result()))
+                th = self.pool.submit(task.do_crawl)
             else:
                 raise TypeError('task must inherit Crawler')
-
 
 if __name__ == '__main__':
     manager = TaskManager()
