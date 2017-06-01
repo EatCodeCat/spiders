@@ -12,4 +12,4 @@ class MongoPerist(Peristenter):
         self.contents_dao.insert_one(item)
 
     def url_item_save(self, task_item):
-        self.task_dao.find_one_and_replace({"_id": task_item['task_id']}, task_item)
+        taskmodel.insert_one(task_item)

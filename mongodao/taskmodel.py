@@ -30,3 +30,6 @@ def insert_one(item):
 
 def get_all_tasks():
     return task_dao.find()
+
+def find_one_and_replace(condit, replace):
+    return task_dao.find_one_and_replace(condit, replace)

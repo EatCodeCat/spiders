@@ -29,9 +29,12 @@ class Crawler:
                 exstr = traceback.format_exc()
                 print(exstr)
                 self.urlmanager.cur_url_is_fail()
-        done_result = self.urlmanager.done()
+
         self.item_persistence(self.items)
+        done_result = self.urlmanager.done()
+
         self.url_item_persistence(done_result)
+
         return self.items
 
     def request(self, url, callback, method='GET'):
@@ -59,7 +62,9 @@ class Crawler:
             self.perist.item_save(it)
 
     def url_item_persistence(self, items):
-        if isinstance(items, Iterable):
+        if isinstance(items, dict):
+            self.perist.url_item_save(items)
+        elif isinstance(items, Iterable):
             for it in items:
                 self.perist.url_item_save(it)
         else:

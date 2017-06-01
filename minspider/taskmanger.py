@@ -15,7 +15,7 @@ class TaskManager:
 
         for task in self.deque_task:
             if isinstance(task, Crawler):
-                th = self.pool.submit(task.do_crawl)
+                task.do_crawl()
             else:
                 raise TypeError('task must inherit Crawler')
 
