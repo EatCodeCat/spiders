@@ -1,15 +1,13 @@
-a  = dict()
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 
-a.__getattribute__ = lambda self, name: self[name]
+def my_job():
+    print('hello world')
 
 
-a['a'] = 111
-
-
-
-
-
+sched = BlockingScheduler()
+sched.add_job(my_job, 'interval', seconds=5)
+sched.start()
 
 
 
