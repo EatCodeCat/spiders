@@ -113,6 +113,8 @@
 
 <script>
     import TaskEdit from './taskedit.vue'
+    import fetch from '../service/datafetch.js'
+
     export default {
         components:{TaskEdit},
         data() {
@@ -143,14 +145,14 @@
                         }
                     ]
                 },
-                tableData1: this.mockTableData1(),
+                tableData1: [],
                 tableColumns1: [{
                         title: '序号',
                         key: 'id'
                     },
                     {
                         title: '任务名称',
-                        key: 'name'
+                        key: 'task_name'
                     },
                     {
                         title: '状态',
@@ -234,40 +236,17 @@
             }
         },
         created() {
-    
+                fetch.fetch_task_list(0).then((res)=>{
+                     this.tableData1 = res.body
+                })
         },
         methods: {
             ok(){
 
             },
             cancel(){
+                
 
-            },
-            mockTableData1() {
-                let data = [];
-                for (let i = 0; i < 20; i++) {
-                    data.push({
-                        name: '商圈' + Math.floor(Math.random() * 100 + 1),
-                        status: Math.floor(Math.random() * 3 + 1),
-                        portrayal: ['城市渗透', '人群迁移', '消费指数', '生活指数', '娱乐指数'],
-                        people: [{
-                                n: '客群' + Math.floor(Math.random() * 100 + 1),
-                                c: Math.floor(Math.random() * 1000000 + 100000)
-                            },
-                            {
-                                n: '客群' + Math.floor(Math.random() * 100 + 1),
-                                c: Math.floor(Math.random() * 1000000 + 100000)
-                            },
-                            {
-                                n: '客群' + Math.floor(Math.random() * 100 + 1),
-                                c: Math.floor(Math.random() * 1000000 + 100000)
-                            }
-                        ],
-                        time: Math.floor(Math.random() * 7 + 1),
-                        update: new Date()
-                    })
-                }
-                return data;
             },
             formatDate(date) {
                 const y = date.getFullYear();
@@ -279,7 +258,6 @@
             },
             changePage() {
                 // 这里直接更改了模拟的数据，真实使用场景应该从服务端获取数据
-                this.tableData1 = this.mockTableData1();
             },
             newtask() {
                 this.$router.push('taskedit')

@@ -31,5 +31,8 @@ def insert_one(item):
 def get_all_tasks():
     return task_dao.find()
 
+def search_tasks(index, page, **filter):
+    return task_dao.search(index, page)
+
 def find_one_and_replace(condit, replace):
     return task_dao.find_one_and_replace(condit, replace)

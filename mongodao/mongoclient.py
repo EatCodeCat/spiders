@@ -16,6 +16,9 @@ class MClient:
     def find(self):
         return self.collection.find()
 
+    def search(self, index, page, **filter):
+        return self.collection.find(filter, skip= page*index, limit=page)
+
     def find_one_and_replace(self, ceritira,repacement):
         return self.collection.insert_one(filter=ceritira, replacement=repacement)
 

@@ -24,11 +24,22 @@ def hello_world():
     return jsonify({'m':'Hello World!'})
 
 
-@app.route('/addtask',method='POST')
+@app.route('/addtask', methods=['POST'])
 @allow_cross_domain
 def add_task():
     request.form['username']
     taskmodel.insert_one(request.form)
+
+@app.route('/tasklist/page/<int:index>')
+@allow_cross_domain
+def task_list(index):
+    page = 20
+    data = taskmodel.search_tasks(index, page)
+    json_arr = []
+    for it in data:
+        it['_id'] = str(it['_id'])
+        json_arr.append(it)
+    return jsonify(json_arr)
 
 if __name__ == '__main__':
     app.run(debug=True)
