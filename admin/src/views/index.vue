@@ -103,9 +103,10 @@
                 </div>
             </div>
         </div>
-        <Modal v-model="modal1" title="普通的Modal对话框标题" @on-ok="ok" @on-cancel="cancel">
+        <Modal v-model="modal1" title="新增" @on-ok="ok" @on-cancel="cancel" width="900">
             <TaskEdit></TaskEdit>
-            <footer />
+            <div slot="footer">
+        </div>
         </Modal>
     </div>
 </template>
@@ -122,9 +123,6 @@
                             text: '今天',
                             value() {
                                 return new Date();
-                            },
-                            onClick: (picker) => {
-                                this.$Message.info('点击了今天');
                             }
                         },
                         {
@@ -133,9 +131,6 @@
                                 const date = new Date();
                                 date.setTime(date.getTime() - 3600 * 1000 * 24);
                                 return date;
-                            },
-                            onClick: (picker) => {
-                                this.$Message.info('点击了昨天');
                             }
                         },
                         {
@@ -144,9 +139,6 @@
                                 const date = new Date();
                                 date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
                                 return date;
-                            },
-                            onClick: (picker) => {
-                                this.$Message.info('点击了一周前');
                             }
                         }
                     ]
@@ -191,6 +183,13 @@
                         }
                     },
                     {
+                        title: '进度',
+                        key: 'update',
+                        render: (h, params) => {
+                            return h('div', this.formatDate(this.tableData1[params.index].update));
+                        }
+                    },
+                    {
                         title: '更新时间',
                         key: 'update',
                         render: (h, params) => {
@@ -215,7 +214,7 @@
                                             this.show(params.index)
                                         }
                                     }
-                                }, '查看'),
+                                }, '编辑'),
                                 h('Button', {
                                     props: {
                                         type: 'error',
