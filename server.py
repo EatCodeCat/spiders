@@ -27,7 +27,6 @@ def hello_world():
 @app.route('/addtask', methods=['POST'])
 @allow_cross_domain
 def add_task():
-    request.form['username']
     taskmodel.insert_one(request.form)
 
 @app.route('/tasklist/page/<int:index>')
@@ -40,6 +39,16 @@ def task_list(index):
         it['_id'] = str(it['_id'])
         json_arr.append(it)
     return jsonify(json_arr)
+
+@app.route('/task/id/<id>')
+@allow_cross_domain
+def task(id):
+    model = taskmodel.get_task_by_id(id)
+    model['_id'] = str(model['_id'])
+    return jsonify(model)
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

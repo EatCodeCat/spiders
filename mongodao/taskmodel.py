@@ -31,6 +31,9 @@ def insert_one(item):
 def get_all_tasks():
     return task_dao.find()
 
+def get_task_by_id(id):
+    return task_dao.find_one(_id=task_dao.ObjectId(id))
+
 def search_tasks(index, page, **filter):
     return task_dao.search(index, page)
 
