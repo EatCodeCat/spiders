@@ -27,7 +27,8 @@ def hello_world():
 @app.route('/addtask', methods=['POST'])
 @allow_cross_domain
 def add_task():
-    taskmodel.insert_one(request.form)
+    print(request.form)
+    #taskmodel.insert_one(request.form)
 
 @app.route('/tasklist/page/<int:index>')
 @allow_cross_domain

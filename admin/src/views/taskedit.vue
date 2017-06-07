@@ -1,61 +1,57 @@
 <template>
-    <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="80">
+    <Form ref="model" :model="model"  :label-width="80">
 
         <Form-item label="任务名称" prop="name">
 
-            <Input v-model="formValidate.name" placeholder="任务名称"></Input>
+            <Input v-model="model.task_name" placeholder="任务名称"></Input>
 
         </Form-item>
 
         <Form-item label="任务Class" prop="mail">
 
-            <Input v-model="formValidate.mail" placeholder="任务Class"></Input>
+            <Input v-model="model.task_cls" placeholder="任务Class"></Input>
 
         </Form-item>
 
         <Form-item label="内容等级" prop="mail">
 
-            <Input-number :max="10" :min="1" v-model="value1"></Input-number>
+            <Input-number :max="10" :min="1" v-model="model.warnning_lv"></Input-number>
 
         </Form-item>
 
         <Form-item label="运行类型" prop="interest">
 
-            <Radio-group v-model="formValidate.gender">
-
-                <Radio label="male">立即</Radio>
-
-                <Radio label="female">时间</Radio>
-
-                <Radio label="female">重复</Radio>
-
+            <Radio-group v-model="model.loop_type">
+                <Radio label="1">立即</Radio>
+                <Radio label="2" >时间</Radio>
+                <Radio label="3" >重复</Radio>
             </Radio-group>
 
         </Form-item>
 
-        <Form-item label="日期">
+        <Form-item label="日期" v-show="model.loop_type == 2">
 
             <Date-picker type="datetime" :options="options1" placeholder="选择日期"></Date-picker>
 
         </Form-item>
 
-        <Form-item label="Cron">
+        <Form-item label="Cron" v-show="model.loop_type == 3">
 
-            <Input v-model="formValidate.mail" placeholder="Cron"></Input>
+            <Input v-model="model.cron" placeholder="Cron"></Input>
 
         </Form-item>
 
-        <Form-item label="url">
+        <Form-item label="url" >
             <Row :gutter="8">
                 <Col span="8">
-                <Input v-model="formValidate.mail" placeholder="url"></Input></Col>
+                <Input v-model="url" placeholder="url"></Input></Col>
                 <Col span="4">
                 http://xxxx-{page}</Col>
                 <Col span="7">
-                <Input v-model="formValidate.mail" placeholder="开始" style="width:40%"></Input> - <Input
-                    style="width:40%" v-model="formValidate.mail" placeholder="结束"></Input></Col>
+                <Input v-model="b_page" placeholder="开始" style="width:40%"></Input> - <Input
+                    style="width:40%" v-model="e_page" placeholder="结束"></Input></Col>
                 <Col span="4">
-                <Button type="primary">生成</Button>
+                <Button type="primary" @click="addUrl">生成</Button>
                 </Col>
             </Row>
         </Form-item>
@@ -67,30 +63,49 @@
         </Form-item>
 
         <Form-item>
-
-            <Button type="primary" @click="handleSubmit('formValidate')">提交</Button>
-
-            <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">重置</Button>
-
+            <Button type="primary" @click="handleSubmit('model')">提交</Button>
+            <Button type="ghost" @click="handleReset('model')" style="margin-left: 8px">重置</Button>
         </Form-item>
 
     </Form>
 </template>
 <script>
+
+    import fetch from '../service/datafetch.js'
     export default {
 
         data() {
 
             return {
-                model:{},
+                model:{
+                    task_name:'',
+                    task_cls:'',
+                    cron:'',
+                    url_items:[],
+                    loop_type:1,
 
+                },
+                b_page:'',
+                e_page:'',
+                url:'',
                 urlcol: [ {
                     title: 'url',
                     key: 'url',
                 },
                     {
                         title: '状态',
-                        key: 'status'
+                        key: 'status',
+                        render: (h, params) =>{
+                            const row = params.row;
+                            const color = row.status === 1 ? 'blue' : row.status === 2 ? 'green' : 'red';
+                            const text = row.status === 1 ? '未抓取' : row.status === 2 ? '抓取成功' : '抓取失败';
+                            return h ('Tag', {
+                                props: {
+                                    type: 'dot',
+                                    color: color
+                                }
+                            }, text);
+                        }
                     },
                     {
                         title: '抓取时间',
@@ -132,28 +147,7 @@
                         }
                     }
                 ],
-
-                url_items: [ {
-                    name: '王小明',
-                    age: 18,
-                    address: '北京市朝阳区芍药居'
-                },
-                    {
-                        name: '张小刚',
-                        age: 25,
-                        address: '北京市海淀区西二旗'
-                    },
-                    {
-                        name: '李小红',
-                        age: 30,
-                        address: '上海市浦东新区世纪大道'
-                    },
-                    {
-                        name: '周小伟',
-                        age: 26,
-                        address: '深圳市南山区深南大道'
-                    }
-                ],
+                url_items: [],
                 options1: {
                     shortcuts: [ {
                         text: '今天',
@@ -179,145 +173,27 @@
                         }
                     ]
                 },
-                formValidate: {
-                    name: '',
-                    mail: '',
-                    city: '',
-                    gender: '',
-                    interest: [],
-                    date: '',
-                    time: '',
-                    desc: ''
-                },
-                ruleValidate: {
-                    name: [ {
-                        required: true,
-                        message: '姓名不能为空',
-                        trigger: 'blur'
-                    } ],
-                    mail: [ {
-                        required: true,
-                        message: '邮箱不能为空',
-                        trigger: 'blur'
-                    },
-                        {
-                            type: 'email',
-                            message: '邮箱格式不正确',
-                            trigger: 'blur'
-                        }
-                    ],
-
-                    city: [ {
-                        required: true,
-                        message: '请选择城市',
-                        trigger: 'change'
-                    } ],
-
-                    gender: [ {
-                        required: true,
-                        message: '请选择性别',
-                        trigger: 'change'
-                    } ],
-
-                    interest: [ {
-
-                        required: true,
-
-                        type: 'array',
-
-                        min: 1,
-
-                        message: '至少选择一个爱好',
-
-                        trigger: 'change'
-
-                    },
-
-                        {
-
-                            type: 'array',
-
-                            max: 2,
-
-                            message: '最多选择两个爱好',
-
-                            trigger: 'change'
-
-                        }
-
-                    ],
-
-                    date: [ {
-
-                        required: true,
-
-                        type: 'date',
-
-                        message: '请选择日期',
-
-                        trigger: 'change'
-
-                    } ],
-
-                    time: [ {
-
-                        required: true,
-
-                        type: 'date',
-
-                        message: '请选择时间',
-
-                        trigger: 'change'
-
-                    } ],
-
-                    desc: [ {
-
-                        required: true,
-
-                        message: '请输入个人介绍',
-
-                        trigger: 'blur'
-
-                    },
-
-                        {
-
-                            type: 'string',
-
-                            min: 20,
-
-                            message: '介绍不能少于20字',
-
-                            trigger: 'blur'
-
-                        }
-
-                    ]
-
-                }
-
             }
 
         },
 
         methods: {
+            addUrl(){
 
-            handleSubmit(name) {
+                if(this.b_page && this.e_page){
 
-                this.$refs[ name ].validate ((valid) =>{
-
-                    if ( valid ) {
-
-                        this.$Message.success ('提交成功!');
-
-                    } else {
-
-                        this.$Message.error ('表单验证失败!');
-
+                    for(var i = this.b_page; i < this.e_page; i++){
+                        this.url_items.push({url:this.url.replace('{page}', i)})
                     }
+                }
+                else{
+                    this.url_items.push({url:this.url, status:1})
+                }
 
-                })
+            },
+            handleSubmit(name) {
+                fetch.updata_save_task(this.model)
+
 
             },
 

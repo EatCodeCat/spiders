@@ -10,7 +10,7 @@ from task.basecrawler import BaseCrawler
 
 class TaskItem:
     def __init__(self, _id, task_name: str, task_cls: str, url_items=[], host='', status=0, remark='', headers={},
-                 interval='',
+                 cron='', warnning_lv=0,
                  loop_type='', lv=0):
         self.__dict__.update({k: v for k, v in locals().items() if k != 'self'})
 
