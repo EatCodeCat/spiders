@@ -31,7 +31,7 @@
 
         <Form-item label="日期" v-show="model.loop_type == 2">
 
-            <Date-picker type="datetime" :options="options1" placeholder="选择日期"></Date-picker>
+            <Date-picker type="datetime" v-model="model.exec_time" :options="options1" placeholder="选择日期"></Date-picker>
 
         </Form-item>
 
@@ -58,7 +58,7 @@
 
         <Form-item label="urls" prop="desc">
 
-            <Table border :columns="urlcol" :data="url_items"></Table>
+            <Table border :columns="urlcol" :data="model.url_items"></Table>
 
         </Form-item>
 
@@ -74,8 +74,8 @@
     import fetch from '../service/datafetch.js'
     export default {
 
+        props:['data'],
         data() {
-
             return {
                 model:{
                     task_name:'',
@@ -83,7 +83,7 @@
                     cron:'',
                     url_items:[],
                     loop_type:1,
-
+                    warnning_lv:1,
                 },
                 b_page:'',
                 e_page:'',
@@ -176,6 +176,12 @@
             }
 
         },
+        watch:{
+            data(val, oldVal){
+                Object.assign(this.model, val)
+            }
+
+        },
 
         methods: {
             addUrl(){
@@ -183,11 +189,11 @@
                 if(this.b_page && this.e_page){
 
                     for(var i = this.b_page; i < this.e_page; i++){
-                        this.url_items.push({url:this.url.replace('{page}', i)})
+                        this.model.url_items.push({url:this.url.replace('{page}', i)})
                     }
                 }
                 else{
-                    this.url_items.push({url:this.url, status:1})
+                    this.model.url_items.push({url:this.url, status:1})
                 }
 
             },
@@ -196,11 +202,15 @@
 
 
             },
-
             handleReset(name) {
+                this.model ={
+                    task_name:'',
+                        task_cls:'',
+                        cron:'',
+                        url_items:[],
+                        loop_type:1,
 
-                this.$refs[ name ].resetFields ();
-
+                }
             }
 
         }

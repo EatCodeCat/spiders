@@ -31,11 +31,23 @@ def insert_one(item):
 def get_all_tasks():
     return task_dao.find()
 
+
 def get_task_by_id(id):
     return task_dao.find_one(_id=task_dao.ObjectId(id))
+
+
+def update(id, model):
+    model["_id"] = task_dao.ObjectId(model["_id"])
+    return task_dao.update(model, _id=task_dao.ObjectId(id))
+
 
 def search_tasks(index, page, **filter):
     return task_dao.search(index, page)
 
+
 def find_one_and_replace(condit, replace):
     return task_dao.find_one_and_replace(condit, replace)
+
+
+def delete(id):
+    return task_dao.delete(task_dao.ObjectId(id))

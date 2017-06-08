@@ -100,12 +100,12 @@
             <Table :data="tableData1" :columns="tableColumns1" stripe></Table>
             <div style="margin: 10px;overflow: hidden">
                 <div style="float: right;">
-                    <Page :total="100" :current="1" @on-change="changePage"></Page>
+                    <Page :total="total" :page-size="15" :current="1" @on-change="changePage"></Page>
                 </div>
             </div>
         </div>
         <Modal v-model="modal1" title="新增" @on-ok="ok" @on-cancel="cancel" width="900">
-            <TaskEdit></TaskEdit>
+            <TaskEdit :data="model"></TaskEdit>
             <div slot="footer">
             </div>
         </Modal>
@@ -120,6 +120,8 @@
         components: {TaskEdit},
         data() {
             return {
+                model:{},
+                total:0,
                 modal1: false,
                 options1: {
                     shortcuts: [ {
@@ -149,7 +151,10 @@
                 tableData1: [],
                 tableColumns1: [ {
                     title: '序号',
-                    key: '_id'
+                    key: 'index',
+                    render: (h, params) =>{
+                        return h ('span',  params.index + 1);
+                    }
                 },
                     {
                         title: '任务名称',
@@ -161,7 +166,7 @@
                         render: (h, params) =>{
                             const row = params.row;
                             const color = row.status === 1 ? 'blue' : row.status === 2 ? 'green' : 'red';
-                            const text = row.status === 1 ? '构建中' : row.status === 2 ? '构建完成' : '构建失败';
+                            const text = row.status === 1 ? '抓取中' : row.status === 2 ? '抓取完成' : '未开始';
                             return h ('Tag', {
                                 props: {
                                     type: 'dot',
@@ -176,28 +181,42 @@
                     },
                     {
                         title: '内容等级',
-                        key: 'people',
+                        key: 'warnning_lv',
                     },
                     {
                         title: '执行周期',
-                        key: 'time',
+                        key: 'loop_type',
                         render: (h, params) =>{
-                            return h ('div', '近' + params.row.time + '天');
+                            var t = params.row.loop_type;
+                            var  msg = ''
+                            if(t == 1){
+                                msg = "立即执行"
+                            }
+                            else if(t == 2){
+                                msg = params.row.exec_time;
+                            }
+                            else if( t == 3){
+                                msg = params.row.cron;
+                            }
+                            return h ('div', msg);
                         }
                     },
                     {
                         title: '进度',
-                        key: 'update',
+                        key: 'progress',
                         render: (h, params) =>{
-                            return h ('div', this.formatDate (this.tableData1[ params.index ].update));
+                            var p = 0
+                            return h ('Progress', {
+                                props: {
+                                    percent: p || 0,
+                                }
+                            });
                         }
                     },
                     {
                         title: '更新时间',
-                        key: 'update',
-                        render: (h, params) =>{
-                            return h ('div', this.formatDate (this.tableData1[ params.index ].update));
-                        }
+                        key: 'update'
+
                     },
                     {
                         title: '操作',
@@ -214,7 +233,7 @@
                                     },
                                     on: {
                                         click: () =>{
-                                            this.show (params.index)
+                                            this.edit (params.index)
                                         }
                                     }
                                 }, '编辑'),
@@ -243,6 +262,10 @@
 
         },
         methods: {
+            edit(index){
+                this.model = this.tableData1[index]
+                this.modal1 = true;
+            },
             ok(){
 
             },
@@ -252,18 +275,22 @@
             },
             fetchData(){
                 fetch.fetch_task_list (0).then ((res) =>{
-                    this.tableData1 = res.body
+                    this.tableData1 = res.body.data;
+                    this.total = res.body.total;
+
                 })
             },
-            formatDate(date) {
-                const y = date.getFullYear ();
-                let m = date.getMonth () + 1;
-                m = m < 10 ? '0' + m : m;
-                let d = date.getDate ();
-                d = d < 10 ? ('0' + d) : d;
-                return y + '-' + m + '-' + d;
+            remove(index){
+
+                fetch.delete_task(this.tableData1[index]._id)
+                this.tableData1.splice(index,1);
+
             },
-            changePage() {
+            changePage(page) {
+                fetch.fetch_task_list (page - 1).then ((res) =>{
+                    this.tableData1 = res.body.data;
+                    this.total = res.body.total;
+                })
                 // 这里直接更改了模拟的数据，真实使用场景应该从服务端获取数据
             },
             newtask() {

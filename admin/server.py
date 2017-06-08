@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, render_template, request,make_response
 from functools import wraps
 from mongodao import taskmodel
+import  traceback
+import  datetime
 
 app = Flask(__name__)
 
@@ -20,26 +22,50 @@ def allow_cross_domain(fun):
 
 @app.route('/')
 @allow_cross_domain
-def hello_world():
-    return jsonify({'m':'Hello World!'})
+def index():
+    return render_template('index_prod.html')
+
+
+@app.route('/deletetask/id/<id>')
+@allow_cross_domain
+def delete_task(id):
+    try:
+        taskmodel.delete(id)
+        return jsonify(result=0)
+    except Exception as  e:
+        exstr = traceback.format_exc()
+        print(exstr)
+        return jsonify(result=1)
+
 
 
 @app.route('/addtask', methods=['POST'])
 @allow_cross_domain
-def add_task():
-    print(request.form)
-    #taskmodel.insert_one(request.form)
+def add_update__task():
+    try:
+        request.json['update'] =datetime.datetime.now()
+        if "_id" not in request.json:
+            taskmodel.insert_one(request.json)
+        else:
+            taskmodel.update(request.json['_id'], request.json)
+        return jsonify(result=0)
+    except Exception as  e:
+        exstr = traceback.format_exc()
+        print(exstr)
+        return jsonify(result=1)
+
+
 
 @app.route('/tasklist/page/<int:index>')
 @allow_cross_domain
 def task_list(index):
-    page = 20
-    data = taskmodel.search_tasks(index, page)
+    page = 15
+    cursor, count = taskmodel.search_tasks(index, page)
     json_arr = []
-    for it in data:
+    for it in cursor:
         it['_id'] = str(it['_id'])
         json_arr.append(it)
-    return jsonify(json_arr)
+    return jsonify({'data':json_arr, 'total':count})
 
 @app.route('/task/id/<id>')
 @allow_cross_domain
@@ -47,9 +73,6 @@ def task(id):
     model = taskmodel.get_task_by_id(id)
     model['_id'] = str(model['_id'])
     return jsonify(model)
-
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)

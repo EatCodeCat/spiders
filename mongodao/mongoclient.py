@@ -14,21 +14,22 @@ class MClient:
     def insert_one(self, entity):
         self.collection.insert_one(entity)
 
-
     def ObjectId(self, _id):
         return ObjectId(_id)
 
-    
     def find(self):
         return self.collection.find()
 
     def find_one(self, **filter):
         return self.collection.find_one(filter)
 
+    def update(self, repacement, **filter):
+        return self.collection.replace_one(filter, repacement)
+
     def search(self, index, page, **filter):
-        return self.collection.find(filter, skip= page*index, limit=page)
+        count = self.collection.count(filter)
+        cursor = self.collection.find(filter, skip=page * index, limit=page)
+        return  cursor, count
 
-    def find_one_and_replace(self, ceritira,repacement):
-        return self.collection.insert_one(filter=ceritira, replacement=repacement)
-
-
+    def delete(self, _id):
+        return self.collection.delete_one({"_id": _id})
