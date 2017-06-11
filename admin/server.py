@@ -32,7 +32,7 @@ def delete_task(id):
     try:
         taskmodel.delete(id)
         return jsonify(result=0)
-    except Exception as  e:
+    except Exception as e:
         exstr = traceback.format_exc()
         print(exstr)
         return jsonify(result=1)

@@ -11,5 +11,5 @@ class MongoPerist(Peristenter):
     def item_save(self, item: dict):
         self.contents_dao.insert_one(item)
 
-    def url_item_save(self, task_item):
+    def url_item_save(self, task_item: dict):
         taskmodel.insert_one(task_item)

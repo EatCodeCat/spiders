@@ -59,7 +59,7 @@ class WebcatCrawler(BaseCrawler):
                 'content_type': 1,
                 'title': title,
                 'thumbnail': thumbnail,
-                'warning_lv': self.lv,
+                'warning_lv': self.warnning_lv,
                 'desc': desc,
                 'author': self.name,
                 'content_time': c_date,

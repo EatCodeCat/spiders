@@ -105,7 +105,7 @@
             </div>
         </div>
         <Modal v-model="modal1" title="新增" @on-ok="ok" @on-cancel="cancel" width="900">
-            <TaskEdit :data="model"></TaskEdit>
+            <TaskEdit :data="model" @close="modal1 = false"></TaskEdit>
             <div slot="footer">
             </div>
         </Modal>

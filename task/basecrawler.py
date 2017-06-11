@@ -3,7 +3,7 @@ from minspider import Crawler
 
 class BaseCrawler(Crawler):
     def __init__(self, task_item, urlmanager, perist):
-        self.lv = task_item.lv
+        self.warnning_lv = task_item.warnning_lv
         self.urlmanager = urlmanager
         self.name = task_item.task_name
         self.__host__ = task_item.host

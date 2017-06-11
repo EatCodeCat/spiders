@@ -184,6 +184,9 @@
         },
 
         methods: {
+            remove(index){
+                this.model.url_items.splice(index, 1);
+            },
             addUrl(){
 
                 if(this.b_page && this.e_page){
@@ -198,7 +201,24 @@
 
             },
             handleSubmit(name) {
-                fetch.updata_save_task(this.model)
+                fetch.updata_save_task(this.model).then((resp)=>{
+
+                    if(resp.body.result == 0){
+                        this.$Modal.success({
+                            title: '结果',
+                            content: "保存成功"
+                        });
+                    }
+                    else{
+                        this.$Modal.error({
+                            title: '结果',
+                            content: "保存失败"
+                        });
+                    }
+                    this.$emit('close')
+
+
+                })
 
 
             },
