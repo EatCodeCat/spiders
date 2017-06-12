@@ -23,8 +23,11 @@ class MClient:
     def find_one(self, **filter):
         return self.collection.find_one(filter)
 
-    def update(self, repacement, **filter):
+    def replace_one(self, repacement, **filter):
         return self.collection.replace_one(filter, repacement)
+
+    def update(self, update, **filter):
+        return self.collection.update_many(filter, update)
 
     def search(self, index, page, **filter):
         count = self.collection.count(filter)

@@ -47,7 +47,7 @@ def add_update__task():
         if "_id" not in request.json:
             taskmodel.insert_one(request.json)
         else:
-            taskmodel.update(request.json['_id'], request.json)
+            taskmodel.replace_one(request.json['_id'], request.json)
         return jsonify(result=0)
     except Exception as  e:
         exstr = traceback.format_exc()

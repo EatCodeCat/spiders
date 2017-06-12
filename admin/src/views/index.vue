@@ -69,7 +69,7 @@
 
             <Card :bordered="false">
                 <p slot="title" style="    height:36px;"><span>搜索</span>
-                    <Button @click="modal1 = true" type="primary" style="float: right;">新增任务</Button>
+                    <Button @click="addTask" type="primary" style="float: right;">新增任务</Button>
                 </p>
                 <Form ref="formInline" inline :label-width="80">
                     <Form-item label="任务名称">
@@ -104,7 +104,7 @@
                 </div>
             </div>
         </div>
-        <Modal v-model="modal1" title="新增" @on-ok="ok" @on-cancel="cancel" width="900">
+        <Modal v-model="modal1" title="新增" width="900">
             <TaskEdit :data="model" @close="modal1 = false"></TaskEdit>
             <div slot="footer">
             </div>
@@ -256,25 +256,22 @@
             }
         },
         mounted(){
-            this.fetchData()
+            this.fetchData(0)
         },
         created() {
 
         },
         methods: {
+            addTask(){
+                this.model={};
+                this.modal1 = true; 
+            },
             edit(index){
-                this.model = this.tableData1[index]
+                this.model = this.tableData1[index];
                 this.modal1 = true;
             },
-            ok(){
-
-            },
-            cancel(){
-
-
-            },
-            fetchData(){
-                fetch.fetch_task_list (0).then ((res) =>{
+            fetchData(page){
+                fetch.fetch_task_list (page).then ((res) =>{
                     this.tableData1 = res.body.data;
                     this.total = res.body.total;
 
@@ -287,11 +284,7 @@
 
             },
             changePage(page) {
-                fetch.fetch_task_list (page - 1).then ((res) =>{
-                    this.tableData1 = res.body.data;
-                    this.total = res.body.total;
-                })
-                // 这里直接更改了模拟的数据，真实使用场景应该从服务端获取数据
+                this.fetchData(page - 1)
             },
             newtask() {
                 this.$router.push ('taskedit')
