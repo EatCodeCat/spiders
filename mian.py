@@ -11,7 +11,7 @@ from task.basecrawler import BaseCrawler
 class TaskItem:
     def __init__(self, **kwargs):
         if 'url_items' in kwargs:
-            kwargs['url_items'] = [minspider.UrlItem(**it) for it in kwargs['url_items'] ]
+            kwargs['url_items'] = [minspider.UrlItem(**it) for it in kwargs['url_items']]
         self.__dict__.update(kwargs)
 
     def push_url_item(self, url_item: minspider.UrlItem):
