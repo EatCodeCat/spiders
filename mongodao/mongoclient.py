@@ -12,7 +12,7 @@ class MClient:
         self.collection = self.db[collection]
 
     def insert_one(self, entity):
-        self.collection.insert_one(entity)
+        return self.collection.save(entity)
 
     def ObjectId(self, _id):
         return ObjectId(_id)
@@ -24,7 +24,7 @@ class MClient:
         return self.collection.find_one(filter)
 
     def replace_one(self, repacement, **filter):
-        return self.collection.replace_one(filter, repacement)
+        return self.collection.replace_one(filter, repacement, True)
 
     def update(self, update, **filter):
         return self.collection.update_many(filter, update)
@@ -32,7 +32,14 @@ class MClient:
     def search(self, index, page, **filter):
         count = self.collection.count(filter)
         cursor = self.collection.find(filter, skip=page * index, limit=page)
-        return  cursor, count
+        return cursor, count
 
     def delete(self, _id):
         return self.collection.delete_one({"_id": _id})
+
+    def insert_find_one(self):
+        self.collection.insert_one()
+
+    @property
+    def _id(self):
+        return self.collection._id

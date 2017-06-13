@@ -13,20 +13,23 @@ class TaskManager:
 
     def do_task(self):
         for task in self.deque_task:
-            if isinstance(task, Crawler):
-                # 立即执行
-                if task.task_item.loop_type == 1:
-                    task.do_crawl()
-                # 按时间执行
-                elif task.task_item.loop_type == 2:
-                    run_date = datetime.datetime.strptime(task.task_item.exec_time, '%yyyy-%mm-%dd %HH:%MM:%SS')
-                    self.sched.add_job(task.do_crawl, 'date', run_date=run_date)
-                else:
-                    cron_dict = self.parse_cron_str(task.task_item.cron)
-                    self.sched.add_job(task.do_crawl, 'cron', **cron_dict)
-            else:
-                raise TypeError('task must inherit Crawler')
+            self.add_job(task)
         self.sched.start()
+
+    def add_job(self, task):
+        if isinstance(task, Crawler):
+            # 立即执行
+            if task.task_item.loop_type == 1:
+                task.do_crawl()
+            # 按时间执行
+            elif task.task_item.loop_type == 2:
+                run_date = datetime.datetime.strptime(task.task_item.exec_time, '%yyyy-%mm-%dd %HH:%MM:%SS')
+                self.sched.add_job(task.do_crawl, 'date', run_date=run_date)
+            else:
+                cron_dict = self.parse_cron_str(task.task_item.cron)
+                self.sched.add_job(task.do_crawl, 'cron', **cron_dict)
+        else:
+            raise TypeError('task must inherit Crawler')
 
     def parse_cron_str(self, cron_str: str):
         year, month, day, week, day_of_week, hour, minute, second, start_date, end_date = cron_str.split(' ')
@@ -42,8 +45,3 @@ class TaskManager:
             'start_date': start_date,
             'end_date': end_date
         }
-
-
-if __name__ == '__main__':
-    manager = TaskManager()
-    manager.do_task()

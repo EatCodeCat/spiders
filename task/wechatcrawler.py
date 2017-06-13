@@ -14,7 +14,6 @@ class WebcatCrawler(BaseCrawler):
     '''
     爬取 wx.abbao.cn站点的微信公众号
     '''
-
     def __init__(self, task_item, urlmanager, perist):
         super().__init__(task_item, urlmanager, perist)
         self.headers = {
@@ -67,7 +66,7 @@ class WebcatCrawler(BaseCrawler):
                 'detail_url': detailUrl,
                 'from_website': self.__host__,
             }
-            detail_txt = self.request(detailUrl, self.detail_parser)
+            detail_txt = self.request('http://'+detailUrl, self.detail_parser)
             self.cur_item['content'] = detail_txt
             yield self.cur_item
 

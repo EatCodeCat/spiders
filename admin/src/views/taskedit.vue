@@ -9,9 +9,7 @@
                 <Col span="10">
                 <Input v-model="model.host" placeholder="Host"></Input>
                 </Col>
-    
             </Row>
-    
         </Form-item>
         <Row>
             <Col span="12">
@@ -107,7 +105,7 @@ export default {
                 render: (h, params) => {
                     const row = params.row;
                     const color = row.status === 1 ? 'blue' : row.status === 2 ? 'green' : 'red';
-                    const text = row.status === 1 ? '抓取成功' : row.status === 2 ? '抓取失败' : '未抓取';
+                    const text = row.status === 1 ? '抓取成功' : row.status === 2 ? '未抓取' : '抓取失败';
                     return h('Tag', {
                         props: {
                             type: 'dot',
@@ -183,7 +181,6 @@ export default {
                 ]
             },
         }
-
     },
     watch: {
         data(val, oldVal) {
@@ -201,10 +198,7 @@ export default {
                     host: ''
                 };
             }
-
-
         }
-
     },
 
     methods: {
@@ -240,14 +234,8 @@ export default {
                     });
                 }
                 this.$emit('close')
-
-
             })
-
-
         }
-
     }
-
 }
 </script>

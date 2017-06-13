@@ -5,9 +5,9 @@ from datetime import datetime
 
 
 class CrawlStatus(Enum):
+    CRAWL_FAIL = 0
     UN_CRAWL = 1
-    CRAWL_FAIL = 2
-    CRAWL_SUCCESS = 0
+    CRAWL_SUCCESS = 2
 
 
 class UrlItem:
@@ -38,6 +38,7 @@ class UrlManager:
         self.name = name
         self.cur_item = None
         self.is_fail = False
+        self.total = len(crawl_list)
 
     def push_crawl_url(self, url_item):
 
@@ -59,6 +60,8 @@ class UrlManager:
 
     def get_a_crawl_item(self):
         if not self.is_fail and self.cur_item is not None:
+            self.cur_item.crawl_time = datetime.now()
+            self.cur_item.status = CrawlStatus.CRAWL_SUCCESS
             self.success_crawl_list.append(self.cur_item)
         length = len(self.crawl_list)
         if length > 0:
@@ -76,10 +79,11 @@ class UrlManager:
     def repeat_cur_url(self):
         self.crawl_list.append(self.curUrl)
 
+    def progress(self):
+        return len(self.crawl_list) / self.total
+
     def done(self):
-
         logging.debug("done")
-
         if len(self.crawl_list) > 0:
             logging.warning('还有未爬取url任务!')
 

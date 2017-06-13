@@ -1,15 +1,11 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 
+sch = BlockingScheduler()
 
+sch.add_job(lambda :print('1'))
 
-def fun(a=1, b=1):
-    print (a, b)
+sch.start()
 
-
-d = {'b':2, 'a':3}
-ar = [5,6]
-
-
-a1, a2  = ar
-print(a1, a2)
+sch.add_job(lambda :print('2'))
+sch.start()

@@ -1,33 +1,31 @@
 from mongodao import mongoclient
 
-task_dao = mongoclient.MClient('mini_task_db', 'crawl_tasks')
+class TaskModel(mongoclient.MClient):
 
+    def __init__(self):
+        super().__init__('mini_task_db', 'crawl_tasks')
 
-def insert_one(item):
-    task_dao.insert_one(item)
+    def insert_one(self, item):
+       return super().insert_one(item)
 
+    def get_all_tasks(self, ):
+        return self.find()
 
-def get_all_tasks():
-    return task_dao.find()
+    def get_task_by_id(self, id):
+        return self.find_one(_id=self.ObjectId(id))
 
+    def replace_one(self, id, model):
+        model["_id"] = self.ObjectId(model["_id"])
+        return super().replace_one(model, _id=self.ObjectId(id))
 
-def get_task_by_id(id):
-    return task_dao.find_one(_id=task_dao.ObjectId(id))
+    def update_task(self, update, id):
+        return self.update(update, {'_id': self.ObjectId(id)})
 
+    def search_tasks(self, index, page, **filter):
+        return self.search(index, page, **filter)
 
-def replace_one(id, model):
-    model["_id"] = task_dao.ObjectId(model["_id"])
-    return task_dao.replace_one(model, _id=task_dao.ObjectId(id))
+    def find_one_and_replace(self, condit, replace):
+        return self.find_one_and_replace(condit, replace)
 
-def update_task(update, id):
-    return task_dao.update(update, {'_id': task_dao.ObjectId(id)})
-
-def search_tasks(index, page, **filter):
-    return task_dao.search(index, page, **filter)
-
-
-def find_one_and_replace(condit, replace):
-    return task_dao.find_one_and_replace(condit, replace)
-
-def delete(id):
-    return task_dao.delete(task_dao.ObjectId(id))
+    def delete(self, id):
+        return self.delete(self.ObjectId(id))

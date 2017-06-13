@@ -41,8 +41,7 @@ class Peristenter(object):
             save_result = self.save(item)
         except Exception as excep:
             save_result = False
-            logging.error("%s error: %s", self.__class__.__name__, excep,)
-
+            logging.error("%s error: %s", self.__class__.__name__, excep)
         logging.debug("%s end: save_result=%s, url=%s", self.__class__.__name__, save_result)
         return save_result
 

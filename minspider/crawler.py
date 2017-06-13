@@ -31,6 +31,7 @@ class Crawler:
                 self.urlmanager.cur_url_is_fail()
 
         self.item_persistence(self.items)
+        #保存结果
         done_result = self.urlmanager.done()
 
         self.url_item_persistence(done_result)
