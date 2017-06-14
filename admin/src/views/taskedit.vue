@@ -65,7 +65,7 @@
     
         <Form-item label="urls" prop="desc">
     
-            <Table border :columns="urlcol" :data="model.url_items" :height="300"></Table>
+            <Table border :columns="urlcol" :data="model.url_items"></Table>
     
         </Form-item>
     
@@ -214,7 +214,9 @@ export default {
                 }
             }
             else {
-                this.model.url_items.push({ url: this.url, status: 3 })
+                if(this.url){
+                    this.model.url_items.push({ url: this.url, status: 0 })
+                }
             }
 
         },

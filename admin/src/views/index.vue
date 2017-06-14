@@ -242,12 +242,27 @@ export default {
                                 type: 'error',
                                 size: 'small'
                             },
+                            style: {
+                                marginRight: '5px'
+                            },
                             on: {
                                 click: () => {
                                     this.remove(params.index)
                                 }
                             }
-                        }, '删除')
+                        }, '删除'),
+                        h('Button', {
+                            props: {
+                                type: 'success',
+                                size: 'small'
+                            },
+
+                            on: {
+                                click: () => {
+                                    this.setStatus(params.index)
+                                }
+                            }
+                        }, '运行')
                     ]);
                 }
 

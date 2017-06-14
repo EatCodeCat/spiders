@@ -13,6 +13,7 @@ class TaskItem:
         if 'url_items' in kwargs:
             kwargs['url_items'] = [minspider.UrlItem(**it) for it in kwargs['url_items']]
         self.__dict__.update(kwargs)
+        self.taskmodel = TaskModel()
 
     def push_url_item(self, url_item: minspider.UrlItem):
         self.url_items.append(url_item)
@@ -21,6 +22,10 @@ class TaskItem:
         temp = deepcopy(self.__dict__)
         temp['url_items'] = [it.get_dict() for it in temp['url_items']]
         return temp
+
+    def save_update(self):
+        self.taskmodel.replace_one(self.get_dict())
+
 
 
 def execute_all():
