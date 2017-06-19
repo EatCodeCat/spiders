@@ -11,8 +11,11 @@ class MClient:
         self.db = self.client[db]
         self.collection = self.db[collection]
 
+    def insert(self, entity):
+        return self.collection.insert_many(entity)
+
     def insert_one(self, entity):
-        return self.collection.save(entity)
+        return self.collection.insert_one(entity)
 
     def ObjectId(self, _id):
         return ObjectId(_id)

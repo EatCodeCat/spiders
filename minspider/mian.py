@@ -24,7 +24,10 @@ class TaskItem:
         return temp
 
     def save_update(self):
-        self.taskmodel.replace_one(self.get_dict())
+        if '_id' in self.get_dict():
+            self.taskmodel.replace_one(self.get_dict()['_id'], self.get_dict())
+        else:
+            self.taskmodel.insert_one(self.get_dict())
 
 
 
@@ -47,9 +50,9 @@ def execute_one(item):
     m.do_task()
     return m
 
-def build_task(item):
+def build_task(item, module='task'):
     deque_list = deque()
-    mod_task = importlib.import_module('.' + item.task_cls, 'task')
+    mod_task = importlib.import_module('.' + item.task_cls, module)
     task_cls = [getattr(mod_task, it) for it in dir(mod_task) if not it.startswith('_') and hasattr(
         getattr(mod_task, it), '__base__') and getattr(mod_task, it).__base__ == BaseCrawler]
     for cls in task_cls:
