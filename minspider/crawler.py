@@ -59,14 +59,16 @@ class Crawler:
         return {'string': ''}
 
     def item_persistence(self, items):
-        for it in items:
-            self.perist.item_save(it)
+        if items is not None:
+            for it in items:
+                self.perist.item_save(it)
 
     def url_item_persistence(self, items):
-        if isinstance(items, dict):
-            self.perist.url_item_save(items)
-        elif isinstance(items, Iterable):
-            for it in items:
-                self.perist.url_item_save(it)
-        else:
-            self.perist.url_item_save(items)
+        if items is not None:
+            if isinstance(items, dict):
+                self.perist.url_item_save(items)
+            elif isinstance(items, Iterable):
+                for it in items:
+                    self.perist.url_item_save(it)
+            else:
+                self.perist.url_item_save(items)

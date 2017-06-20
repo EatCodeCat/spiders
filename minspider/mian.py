@@ -1,40 +1,17 @@
 import importlib
 from collections import deque
-from copy import deepcopy
 
 import minspider
 from mongodao.taskmodel import TaskModel
 from taskperistent.mongoperist import MongoPerist
 from task.basecrawler import BaseCrawler
-
-
-class TaskItem:
-    def __init__(self, **kwargs):
-        if 'url_items' in kwargs:
-            kwargs['url_items'] = [minspider.UrlItem(**it) for it in kwargs['url_items']]
-        self.__dict__.update(kwargs)
-        self.taskmodel = TaskModel()
-
-    def push_url_item(self, url_item: minspider.UrlItem):
-        self.url_items.append(url_item)
-
-    def get_dict(self):
-        temp = deepcopy(self.__dict__)
-        temp['url_items'] = [it.get_dict() for it in temp['url_items']]
-        return temp
-
-    def save_update(self):
-        if '_id' in self.get_dict():
-            self.taskmodel.replace_one(self.get_dict()['_id'], self.get_dict())
-        else:
-            self.taskmodel.insert_one(self.get_dict())
+from minspider.taskmanger import TaskItem
 
 
 
 def execute_all():
     taskmodel = TaskModel()
     task_list = taskmodel.get_all_tasks()
-
     t_task = [TaskItem(**item) for item in task_list]
     deque_list = deque()
     for item in t_task:

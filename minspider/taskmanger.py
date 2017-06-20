@@ -3,6 +3,33 @@ from .crawler import Crawler
 import collections
 from apscheduler.schedulers.blocking import BlockingScheduler
 import datetime
+from copy import deepcopy
+import minspider
+from collections import deque
+from mongodao.taskmodel import TaskModel
+
+class TaskItem:
+    def __init__(self, **kwargs):
+        if 'url_items' in kwargs:
+            kwargs['url_items'] = [minspider.UrlItem(**it) for it in kwargs['url_items']]
+            self.url_manager = minspider.UrlManager(deque(kwargs['url_items']))
+        self.__dict__.update(kwargs)
+        self.taskmodel = TaskModel()
+
+    def push_url_item(self, url_item: minspider.UrlItem):
+        self.url_items.append(url_item)
+
+    def get_dict(self):
+        temp = deepcopy(self.__dict__)
+        temp['url_items'] = [it.get_dict() for it in temp['url_items']]
+        return temp
+
+    def save_update(self):
+        if '_id' in self.get_dict():
+            self.taskmodel.replace_one(self.get_dict()['_id'], self.get_dict())
+        else:
+            self.taskmodel.insert_one(self.get_dict())
+
 
 
 class TaskManager:
@@ -19,7 +46,7 @@ class TaskManager:
     def add_job(self, task):
         if isinstance(task, Crawler):
             # 立即执行
-            if task.task_item.loop_type == 1:
+            if  not hasattr(task.task_item, 'loop_type') or task.task_item.loop_type == 1:
                 task.do_crawl()
             # 按时间执行
             elif task.task_item.loop_type == 2:

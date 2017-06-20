@@ -31,8 +31,8 @@ class UrlItem:
 
 
 class UrlManager:
-    def __init__(self, crawl_list=deque(), name=''):
-        self.crawl_list = crawl_list
+    def __init__(self, crawl_list=[], name=''):
+        self.crawl_list = deque([UrlItem(it) for it in crawl_list])
         self.fail_craw_list = []
         self.success_crawl_list = []
         self.name = name
