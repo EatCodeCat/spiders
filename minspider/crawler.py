@@ -20,17 +20,14 @@ class Crawler:
             try:
                 response = self.spider.get(urlitem.url)
                 items = self.parse(response)
-                if isinstance(items, Iterable):
-                    for it in items:
-                        self.items.append(it)
-                else:
-                    self.items = items
+                self.item_persistence(items)
+                self.items = []
             except Exception as e:
                 exstr = traceback.format_exc()
                 print(exstr)
                 self.urlmanager.cur_url_is_fail()
 
-        self.item_persistence(self.items)
+
         #保存结果
         done_result = self.urlmanager.done()
 
