@@ -49,25 +49,26 @@ class AotuVideoCrawler(minspider.Crawler):
     def parse(self, response):
         soup = super().parse(response)
         panel = soup.select('.panel-body')
-        if len(panel) > 2:
-            videos = panel[2].select('.videos .video')
-        else:
-            videos = panel[0].select('.videos .video')
+        if len(panel) > 0:
+            if len(panel) > 2:
+                videos = panel[2].select('.videos .video')
+            else:
+                videos = panel[0].select('.videos .video')
 
-        for video in videos:
-            a = self.get_arr_frist_el(video.select('a'))
-            detailUrl = a['href']
-            thumb_pic = a.find('img')['src']
-            title = a.find(class_='video-title').string
-            self.item = {
-                'detail': detailUrl,
-                'title': title,
-                'thumb_pic': thumb_pic,
-            }
-            print(detailUrl)
-            self.request(self.host + detailUrl, self.detail_parser)
-            self.items.append(self.item)
-        return self.items
+            for video in videos:
+                a = self.get_arr_frist_el(video.select('a'))
+                detailUrl = a['href']
+                thumb_pic = a.find('img')['src']
+                title = a.find(class_='video-title').string
+                self.item = {
+                    'detail': detailUrl,
+                    'title': title,
+                    'thumb_pic': thumb_pic,
+                }
+                print(detailUrl)
+                self.request(self.host + detailUrl, self.detail_parser)
+                self.items.append(self.item)
+            return self.items
 
     def item_persistence(self, items):
         for item in items:
