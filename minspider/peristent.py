@@ -23,7 +23,7 @@ class Peristenter(object):
             save_result = self.save(item)
         except Exception as excep:
             save_result = False
-            logging.error("%s error: %s", self.__class__.__name__, excep,)
+            logging.error("%s error: %s", self.__class__.__name__, excep, )
 
         logging.debug("%s end: save_result=%s, url=%s", self.__class__.__name__, save_result)
         return save_result
@@ -32,7 +32,7 @@ class Peristenter(object):
         """
         save the item of a url, you can rewrite this function, parameters and return refer to self.working()
         """
-        self._save_pipe.write("\t".join([str(i) for i in item.items()]) + "\n")
+        self._save_pipe.write("\t".join([k + ':' + str(v) for k, v in item.get_dict().items()]) + "\n")
         self._save_pipe.flush()
         return True
 
@@ -44,5 +44,3 @@ class Peristenter(object):
             logging.error("%s error: %s", self.__class__.__name__, excep)
         logging.debug("%s end: save_result=%s, url=%s", self.__class__.__name__, save_result)
         return save_result
-
-

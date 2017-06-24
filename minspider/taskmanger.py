@@ -1,6 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from .crawler import Crawler
 import collections
+import apscheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 import datetime
 from copy import deepcopy
@@ -31,22 +32,30 @@ class TaskItem:
             self.taskmodel.insert_one(self.get_dict())
 
 
+def task_over(event):
+    if event.exception:
+        print('The job crashed :(')
+    else:
+        print('The job worked :)')
+
 
 class TaskManager:
     def __init__(self, deque_task: collections.deque, max_workers=10):
         self.pool = ThreadPoolExecutor(max_workers=max_workers)
         self.deque_task = deque_task
         self.sched = BlockingScheduler()
+        self.sched.add_listener(task_over, apscheduler.events.EVENT_JOB_EXECUTED | apscheduler.events.EVENT_JOB_ERROR)
 
     def do_task(self):
         for task in self.deque_task:
             self.add_job(task)
-        self.sched.start()
+        if len(self.sched.get_jobs()) > 0:
+            self.sched.start()
 
     def add_job(self, task):
         if isinstance(task, Crawler):
             # 立即执行
-            if  not hasattr(task.task_item, 'loop_type') or task.task_item.loop_type == 1:
+            if not hasattr(task.task_item, 'loop_type') or task.task_item.loop_type == 1:
                 task.do_crawl()
             # 按时间执行
             elif task.task_item.loop_type == 2:

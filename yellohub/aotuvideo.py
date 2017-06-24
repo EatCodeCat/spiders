@@ -14,7 +14,7 @@ class AotuVideoCrawler(minspider.Crawler):
         template_url = 'http://www.aotu17.com/recent/%s/'
 
         url_arr = ['http://www.aotu17.com/']
-        for i in range(2, 3):
+        for i in range(2, 354):
             url_arr.append(template_url % i)
 
         self.urlmanager = minspider.UrlManager(deque(url_arr))

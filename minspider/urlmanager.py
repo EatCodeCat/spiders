@@ -29,6 +29,10 @@ class UrlItem:
         temp['status'] = self.__dict__['status'].value
         return temp
 
+    def items(self):
+        return self.get_dict()
+
+
 
 class UrlManager:
     def __init__(self, crawl_list=[], name=''):
