@@ -1,7 +1,12 @@
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
+from  mongodao.yellohubmodel import VideosModel
+from collections import Counter
+model = VideosModel()
 
+c = model.find()
 
-sched = BlockingScheduler()
+tag_list = []
 
-sced.add_
+for item in c:
+    tag_list += item['tag_list']
+
+print(Counter(tag_list))

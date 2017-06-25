@@ -7,4 +7,4 @@ from mongodao import mongoclient
 
 class VideosModel(mongoclient.MClient):
     def __init__(self):
-        super().__init__('yellohub_test', 'videos')
+        super().__init__('yellohub', 'videos')
