@@ -12,14 +12,14 @@ tag_list = []
 title_list = []
 
 for item in c:
-    title_list.append(item['title'])
-    seg_list = jieba.cut(item['title'])
-    tag_list += seg_list
-    print(", ".join(seg_list))
-    #item['tag_list'] = [it for it in item['tag_list'] if it != '性爱']
-    #model.replace_one(item, **{'_id':item['_id']})
+    # title_list.append(item['title'])
+    # seg_list = jieba.cut(item['title'])
+    # tag_list += seg_list
+    # print(", ".join(seg_list))
+    item['tag_list'] = [it for it in item['tag_list'] if it != '动漫']
+    model.replace_one(item, **{'_id':item['_id']})
 
 
 #tags =jieba.analyse.extract_tags(''.join(title_list), topK=50,withWeight=True)
-Counter(tag_list)
-print(Counter(tag_list))
+# Counter(tag_list)
+# print(Counter(tag_list))
