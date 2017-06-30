@@ -41,9 +41,13 @@ Cookie: inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3a
 from  minspider.crawler import Crawler
 
 from minspider.webspider import WebSpider
-
 import datetime
 import json
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_apscheduler import APScheduler
+import sqlite3
+from flask import Flask, g, jsonify, render_template, request, make_response
 
 touzhuInfo_list = [{
     'keyword': '財布',  # 关键字
@@ -59,6 +63,7 @@ execMins = ''  # 执行分钟
 
 
 def do_touzhu(item):
+    result_list = {}
     wsp = WebSpider({
         'host': 'qsm.qoo10.jp',
         'connection': 'keep-alive',
@@ -78,12 +83,17 @@ def do_touzhu(item):
     params = {"keyword": item['keyword'], "plus_type": "KW", "___cache_expire___": str(datetime.datetime.now())}
 
     text = wsp.post(fetch_top_price_url, data=json.dumps(params)).json()
-    price = text['d']['KW']['list_bid'][0]['bid_price']
+    if len(text['d']['KW']['list_bid']) > 0:
+        price = text['d']['KW']['list_bid'][0]['bid_price']
+    else:
+        result_list['0'] = {
+            'touzhuresult': '关键字没有投注金额'
+        }
+        return
     # 投注
     inc = item['inc']
     bid_price_list = int(price) + inc
 
-    result_list = {}
     for id in item['gd_no_list']:
         post = {"org_plus_id_list": "453", "cust_no": "243841656", "user_id": usename, "gd_no": id,
                 "sid": id, "bid_price_list": bid_price_list,
@@ -96,28 +106,30 @@ def do_touzhu(item):
         result_list[id] = {'touzhuresult:': result, 'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list}
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
-    print(result_list)
     return result_list
 
 
-def do_touzhuInfo_list():
-    touzhuInfo_list = touzhuInfo_list = [{
-        'keyword': '財布',  # 关键字
-        'gd_no_list': ['524152697'],  # 投注id
-        'inc': 50
-    }]
-    for item in touzhuInfo_list:
-        do_touzhu(item)
+app = Flask(__name__, static_folder='dist', template_folder='dist')
 
 
-from flask import Flask
-from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.schedulers.background import BackgroundScheduler
-from flask_apscheduler import APScheduler
-import sqlite3
-from flask import g
+def do_touzhuInfo_list(keyword, gd_no_list, id):
+    app.logger.info('开始任务key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, id)
+    try:
+        result = do_touzhu({
+            'keyword': keyword,  # 关键字
+            'gd_no_list': gd_no_list.split(','),  # 投注id
+            'inc': 50
+        })
+        con = sqlite3.connect('qsm.db')
+        cur = con.cursor()
+        cur.execute('update task set result=?, exec_time=? where id=' + str(id), [str(json.dumps(result)),
+                                                                                 datetime.datetime.now().strftime(
+                                                                                     '%Y-%m-%d %H:%M:%S')])
+        con.commit()
+        con.close()
 
-app = Flask(__name__)
+    except Exception as e:
+        app.logger.exception('异常任务', e)
 
 
 def get_db():
@@ -134,40 +146,99 @@ def close_connection(exception):
         db.close()
 
 
-@app.route('/pause')
-def scheduler_pause():
-    print(scheduler.get_jobs())
-    scheduler.pause_job('hello')
+def execute_sql(sql, *arg):
+    con = get_db()
+    cur = con.cursor()
+    cur.execute(sql, arg)
+    con.commit()
+
+
+def fetch_one(sql, *arg):
+    con = get_db()
+    cur = con.cursor()
+    cur.execute(sql, arg)
+    return cur.fetchone()
+
+
+@app.route('/pause/<id>')
+def scheduler_pause(id):
+    execute_sql('update task set status=1 where id=?', id)
+
+    job_id = 'task_' + id
+    job = scheduler.get_job(job_id)
+    if job is None:
+        add_job(job_id)
+    else:
+        scheduler.pause_job(job_id)
     return 'pause!'
 
 
-@app.route('/resume')
-def scheduler_resume():
-    scheduler.resume_job('hello')
+@app.route('/resume/<id>')
+def scheduler_resume(id):
+    execute_sql('update task set status=0 where id=?', id)
+    job_id = 'task_' + id
+    job = scheduler.get_job(job_id)
+    if job is None:
+        add_job(id)
+    else:
+        scheduler.resume_job(job_id)
     return 'resume'
 
 
-@app.route('/remove')
-def scheduler_remove():
-    scheduler.delete_job('hello')
-    return 'remove'
+@app.route('/remove/<id>')
+def scheduler_remove(id):
+    execute_sql('delete from task where id=?', id)
+    job_id = 'task_' + id
+    job = scheduler.get_job(job_id)
+    if job is not None:
+        scheduler.delete_job(job_id)
+    return jsonify(result=0)
 
 
-@app.route('/add')
-def add_scheduler():
+@app.route('/list')
+def list():
     cur = get_db().cursor()
-    # status 0 正在执行， 1 暂停  2 停止
-    arg = ['財布', '', '財布', '524152697', '0', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
-    cur.execute('insert into task (name, result, key,gn_id_list, status, exec_time) values (?,?,?,?,?,?)', arg)
-    scheduler.add_job('hello', hello, trigger='interval', seconds=3)
-    return 'Hello World!！！！！！'
+    cursor = cur.execute('select * from task')
+    all = cursor.fetchall()
+    return jsonify(all)
 
 
-def hello():
-    print('hello')
+@app.route('/add/<name>/<key>/<idlist>')
+def add_scheduler(name, key, idlist):
+    # status 0 等待执行， 1 暂停, 2 停止
+    arg = [name, '', key, idlist, '0', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
+    execute_sql('insert into task (name, result, key,gn_id_list, status, exec_time) values (?,?,?,?,?,?)', *arg)
+    cur = get_db().cursor()
+    cursor = cur.execute('select max(id) from task')
+    id = cursor.fetchone()[0]
+    add_job(id)
+    return jsonify(result=0)
+
+
+def add_job(task_id):
+    job = scheduler.get_job(task_id)
+    if job is None:
+        task = fetch_one('select * from task where id=' + str(task_id))
+        task = [task[1], task[4], task[0]]
+        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='interval', seconds=3, args=task)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+def hello(*args, **kwg):
+    print(args, kwg)
 
 
 if __name__ == '__main__':
+    con = sqlite3.connect('qsm.db')
+    cur = con.cursor()
+    cur.execute('update task set status=2')
+    con.commit()
+    con.close()
+
     scheduler = APScheduler()
     scheduler.init_app(app)
     scheduler.start()
