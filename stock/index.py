@@ -2,7 +2,7 @@ import json
 import tushare as ts
 from mongodao import stockmodel
 from stock.mongodbscheduler import scheduler
-from apscheduler import  events
+from apscheduler import events
 
 
 def basic_data():

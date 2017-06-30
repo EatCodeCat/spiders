@@ -9,6 +9,7 @@ import minspider
 from collections import deque
 from mongodao.taskmodel import TaskModel
 
+
 class TaskItem:
     def __init__(self, **kwargs):
         if 'url_items' in kwargs:

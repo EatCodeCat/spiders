@@ -18,10 +18,16 @@ class WebSpider:
         r = requests.get(url, headers=self.headers)
         return r.text
 
-    def get(self, url):
+    def get_json(self, url, **param):
+        resp = self.get(url, param)
+        return resp.json()
+
+    def get(self, url, param=None):
         logging.debug(url)
-        r = requests.get(url, headers=self.headers)
+        r = requests.get(url, param, headers=self.headers)
         return r
+    def post(self, url, data=None, json=None):
+        return requests.post(url, data, json, headers=self.headers)
 
     def set_headers(self, item):
         self.headers = dict(self.headers, **item)

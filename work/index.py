@@ -40,9 +40,136 @@ Cookie: inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3a
 
 from  minspider.crawler import Crawler
 
+from minspider.webspider import WebSpider
 
-class Qsm(Crawler):
-    def __init__(self):
-        self.headers = {
+import datetime
+import json
 
-        }
+touzhuInfo_list = [{
+    'keyword': '財布',  # 关键字
+    'gd_no_list': ['524152697'],  # 投注id
+    'inc': 50
+}]
+
+usename = 'flower_424'  # 用户名称
+
+pwd = ''  # 密码
+execHour = ''  # 执行时点
+execMins = ''  # 执行分钟
+
+
+def do_touzhu(item):
+    wsp = WebSpider({
+        'host': 'qsm.qoo10.jp',
+        'connection': 'keep-alive',
+        'cache-control': 'max-age=0',
+        'upgrade-insecure-requests': '1',
+        'content-type': 'application/json',
+        'user-agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'accept-encoding': 'gzip, deflate, sdch',
+        'accept-language': 'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,nb;q=0.2,sk;q=0.2,zh-TW;q=0.2',
+        'cookie': 'tracking-sessionid=43d9cefc-0c1f-4996-9c42-580ead695ead::2017-06-29 14:31:05; inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3aDesktop; tracking-landing-page=0!%3a%3a!; ASP.NET_SessionId=wjgdopnktimrx3122gybebw1; Language=zh-CN; GiosisGsmJP=8BA34F267521110DE071313FC07CCF6A4BD354F475FA5CF66644B3F4843E59D033A6F9079B41174935C2FDD3D7171D63245B018B180A5591059D4026C26FA890BED63D4A74E76288CAB039BB408BE7BEA15116F52ED62DE3A9A3A474ED46720BB376405942D41BF1F874BF43BD90B4C056E3079C4925053F9E6AFCA21241A21AA2392738044786AD9352E14FBD62C0FF144EA148F319AF033D0AADAC34C6E7EA85ACE178EC028C3C388930667F0507DEC594DFAF524CC4963A3B62A5B3DD409DC5AC8CDBF16FD6973F9C1D4A9737A6222ACF1D2768F81D2450431FE1B3CBC4A9E60B4E5DE3EAE9C9DE720334D43E4A4A852D60D10EA569123CF94539F6C9AD5AE48D800A84ECE9BA6D77D3F24849226BD33525D7B2D0609AFFC4E4990A64B3ECCCA570FCBA5E252D30CBDE7EA64431BDB5D4D7EC699BA4D28412DA3E29CE13497170B9A61F1DA7F9594F6B0B498B4C49FA28D832; ID_SAVE=LrT3kB08auQ=; LANG_SAVE=zh-cn; ck_outer_items_set=; qsm_cust_no=243841656; seller_reg_dt=2016-11-01+14%3a11%3a20; qstore_type=; qstore_status=; APPLY_CONFM_YN=Y; C_SVC_NATIONS=JP%7c; IsOriginSvcNation=Y; OriginSvcNation=JP; EP_NO='
+    })
+
+    # 获取投注第一行金额
+    fetch_top_price_url = 'http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/GetPlusItemKeywordGroup'
+
+    params = {"keyword": item['keyword'], "plus_type": "KW", "___cache_expire___": str(datetime.datetime.now())}
+
+    text = wsp.post(fetch_top_price_url, data=json.dumps(params)).json()
+    price = text['d']['KW']['list_bid'][0]['bid_price']
+    # 投注
+    inc = item['inc']
+    bid_price_list = int(price) + inc
+
+    result_list = {}
+    for id in item['gd_no_list']:
+        post = {"org_plus_id_list": "453", "cust_no": "243841656", "user_id": usename, "gd_no": id,
+                "sid": id, "bid_price_list": bid_price_list,
+                "bid_start_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
+                "bid_end_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
+                "landing_type": "", "landing_url": "", "img_url": "", "remark": "", "display_type": "B",
+                "___cache_expire___": str(datetime.datetime.now())}
+        result = wsp.post('http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/PlaceBidKeyword',
+                          data=json.dumps(post)).json()
+        result_list[id] = {'touzhuresult:': result, 'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list}
+
+    # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
+    print(result_list)
+    return result_list
+
+
+def do_touzhuInfo_list():
+    touzhuInfo_list = touzhuInfo_list = [{
+        'keyword': '財布',  # 关键字
+        'gd_no_list': ['524152697'],  # 投注id
+        'inc': 50
+    }]
+    for item in touzhuInfo_list:
+        do_touzhu(item)
+
+
+from flask import Flask
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask_apscheduler import APScheduler
+import sqlite3
+from flask import g
+
+app = Flask(__name__)
+
+
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect('qsm.db')
+    return db
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+
+@app.route('/pause')
+def scheduler_pause():
+    print(scheduler.get_jobs())
+    scheduler.pause_job('hello')
+    return 'pause!'
+
+
+@app.route('/resume')
+def scheduler_resume():
+    scheduler.resume_job('hello')
+    return 'resume'
+
+
+@app.route('/remove')
+def scheduler_remove():
+    scheduler.delete_job('hello')
+    return 'remove'
+
+
+@app.route('/add')
+def add_scheduler():
+    cur = get_db().cursor()
+    # status 0 正在执行， 1 暂停  2 停止
+    arg = ['財布', '', '財布', '524152697', '0', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
+    cur.execute('insert into task (name, result, key,gn_id_list, status, exec_time) values (?,?,?,?,?,?)', arg)
+    scheduler.add_job('hello', hello, trigger='interval', seconds=3)
+    return 'Hello World!！！！！！'
+
+
+def hello():
+    print('hello')
+
+
+if __name__ == '__main__':
+    scheduler = APScheduler()
+    scheduler.init_app(app)
+    scheduler.start()
+    app.debug = True
+    app.run()
