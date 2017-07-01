@@ -63,7 +63,7 @@ execMins = ''  # 执行分钟
 
 
 def do_touzhu(item):
-    result_list = {}
+    result_list = []
     wsp = WebSpider({
         'host': 'qsm.qoo10.jp',
         'connection': 'keep-alive',
@@ -86,10 +86,11 @@ def do_touzhu(item):
     if len(text['d']['KW']['list_bid']) > 0:
         price = text['d']['KW']['list_bid'][0]['bid_price']
     else:
-        result_list['0'] = {
+        result_list.append({
             'touzhuresult': '关键字没有投注金额'
-        }
-        return
+        })
+        return result_list
+
     # 投注
     inc = item['inc']
     bid_price_list = int(price) + inc
@@ -103,7 +104,13 @@ def do_touzhu(item):
                 "___cache_expire___": str(datetime.datetime.now())}
         result = wsp.post('http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/PlaceBidKeyword',
                           data=json.dumps(post)).json()
-        result_list[id] = {'touzhuresult:': result, 'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list}
+
+        r_result = {'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list, 'id':id}
+        if result['d']['ResultCode']== 0:
+            r_result['touzhuresult'] = '投注成功'
+        else:
+            r_result['touzhuresult'] = '投注失败-' + result['d']['ResultMsg']
+        result_list.append(r_result)
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
     return result_list
@@ -160,7 +167,7 @@ def fetch_one(sql, *arg):
     return cur.fetchone()
 
 
-@app.route('/pause/<id>')
+@app.route('/api/pause/<id>')
 def scheduler_pause(id):
     execute_sql('update task set status=1 where id=?', id)
 
@@ -173,7 +180,7 @@ def scheduler_pause(id):
     return 'pause!'
 
 
-@app.route('/resume/<id>')
+@app.route('/api/resume/<id>')
 def scheduler_resume(id):
     execute_sql('update task set status=0 where id=?', id)
     job_id = 'task_' + id
@@ -185,7 +192,7 @@ def scheduler_resume(id):
     return 'resume'
 
 
-@app.route('/remove/<id>')
+@app.route('/api/remove/<id>')
 def scheduler_remove(id):
     execute_sql('delete from task where id=?', id)
     job_id = 'task_' + id
@@ -195,7 +202,7 @@ def scheduler_remove(id):
     return jsonify(result=0)
 
 
-@app.route('/list')
+@app.route('/api/list')
 def list():
     cur = get_db().cursor()
     cursor = cur.execute('select * from task')
@@ -203,7 +210,7 @@ def list():
     return jsonify(all)
 
 
-@app.route('/add/<name>/<key>/<idlist>')
+@app.route('/api/add/<name>/<key>/<idlist>')
 def add_scheduler(name, key, idlist):
     # status 0 等待执行， 1 暂停, 2 停止
     arg = [name, '', key, idlist, '0', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]

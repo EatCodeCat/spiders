@@ -8,7 +8,7 @@
       <el-table-column property="1" label="任务名称" width="110"></el-table-column>
       <el-table-column property="2" label="结果">
         <template scope="scope">
-          <div v-for="it in parse(scope.row[2])">{{it}}</div>
+          <div v-for="it in parse(scope.row[2])">{{it.touzhuresult}} 投注金额：{{it.bid_price_list}} 最高投注金额：{{it.top_price}} </div>
         </template>
       </el-table-column>
       <el-table-column property="3" label="关键字" width="120"></el-table-column>
@@ -52,7 +52,7 @@
 </template>
 <script>
 
-var host = '/api/'
+var host = '/api'
 export default {
   data() {
     return {
@@ -66,6 +66,7 @@ export default {
 
   },
   methods: {
+   
     parse(it){
       try{
         return JSON.parse(it)
