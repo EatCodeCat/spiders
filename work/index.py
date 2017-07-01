@@ -38,7 +38,8 @@ Cookie: inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3a
 
 
 
-from  minspider.crawler import Crawler
+import sys
+sys.path.append("..")
 
 from minspider.webspider import WebSpider
 import datetime
@@ -249,5 +250,4 @@ if __name__ == '__main__':
     scheduler = APScheduler()
     scheduler.init_app(app)
     scheduler.start()
-    app.debug = True
-    app.run()
+    app.run(host='0.0.0.0')
