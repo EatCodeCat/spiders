@@ -135,30 +135,32 @@ def do_touzhu(item):
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
     return result_list
-    print('开始投注完成:')
-
 
 app = Flask(__name__, static_folder='dist', template_folder='dist')
 
 
 def do_touzhuInfo_list(keyword, gd_no_list, id):
     # app.logger.info('开始任务key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, id)
+    con = sqlite3.connect('qsm.db')
+    cur = con.cursor()
     try:
         result = do_touzhu({
             'keyword': keyword,  # 关键字
             'gd_no_list': gd_no_list.split(','),  # 投注id
             'inc': 50
         })
-        con = sqlite3.connect('qsm.db')
-        cur = con.cursor()
+
         cur.execute('update task set result=?, exec_time=? where id=' + str(id), [str(json.dumps(result)),
                                                                                   datetime.datetime.now().strftime(
                                                                                       '%Y-%m-%d %H:%M:%S')])
-        con.commit()
-        con.close()
-
     except Exception as e:
+        cur.execute('update task set result=?, exec_time=? where id=' + str(id), ['任务异常'+ str(e),
+                                                                                  datetime.datetime.now().strftime(
+                                                                                      '%Y-%m-%d %H:%M:%S')])
         app.logger.exception('异常任务', e)
+
+    con.commit()
+    con.close()
 
 
 def get_db():
