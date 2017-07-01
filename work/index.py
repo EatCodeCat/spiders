@@ -245,12 +245,16 @@ def add_job(task_id):
     if job is None:
         task = fetch_one('select * from task where id=' + str(task_id))
         task = [task[1], task[4], task[0]]
-        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=14, minute=30, args=task)
+        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=15, minute=30, args=task)
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/time')
+def time():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
 def hello(*args, **kwg):
