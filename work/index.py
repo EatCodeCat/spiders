@@ -39,6 +39,7 @@ Cookie: inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3a
 
 
 import sys
+
 sys.path.append("..")
 
 from minspider.webspider import WebSpider
@@ -49,6 +50,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_apscheduler import APScheduler
 import sqlite3
 from flask import Flask, g, jsonify, render_template, request, make_response
+import re
 
 touzhuInfo_list = [{
     'keyword': '財布',  # 关键字
@@ -56,7 +58,15 @@ touzhuInfo_list = [{
     'inc': 50
 }]
 
-usename = 'flower_424'  # 用户名称
+# usename = 'flower_424'  # 用户名称
+
+usename = 'ameng1120'  # 用户名称
+cust_no = '240721731'
+
+userinfo = {
+    'username': 'username',
+    'cookie': ''
+}
 
 pwd = ''  # 密码
 execHour = ''  # 执行时点
@@ -75,8 +85,14 @@ def do_touzhu(item):
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'accept-encoding': 'gzip, deflate, sdch',
         'accept-language': 'zh-CN,zh;q=0.8,en;q=0.6,ja;q=0.4,nb;q=0.2,sk;q=0.2,zh-TW;q=0.2',
-        'cookie': 'tracking-sessionid=43d9cefc-0c1f-4996-9c42-580ead695ead::2017-06-29 14:31:05; inflow_referer=direct; tracking-devcd-7=Windows_NT_6.1%3a%3aChrome%3a%3aDesktop; tracking-landing-page=0!%3a%3a!; ASP.NET_SessionId=wjgdopnktimrx3122gybebw1; Language=zh-CN; GiosisGsmJP=8BA34F267521110DE071313FC07CCF6A4BD354F475FA5CF66644B3F4843E59D033A6F9079B41174935C2FDD3D7171D63245B018B180A5591059D4026C26FA890BED63D4A74E76288CAB039BB408BE7BEA15116F52ED62DE3A9A3A474ED46720BB376405942D41BF1F874BF43BD90B4C056E3079C4925053F9E6AFCA21241A21AA2392738044786AD9352E14FBD62C0FF144EA148F319AF033D0AADAC34C6E7EA85ACE178EC028C3C388930667F0507DEC594DFAF524CC4963A3B62A5B3DD409DC5AC8CDBF16FD6973F9C1D4A9737A6222ACF1D2768F81D2450431FE1B3CBC4A9E60B4E5DE3EAE9C9DE720334D43E4A4A852D60D10EA569123CF94539F6C9AD5AE48D800A84ECE9BA6D77D3F24849226BD33525D7B2D0609AFFC4E4990A64B3ECCCA570FCBA5E252D30CBDE7EA64431BDB5D4D7EC699BA4D28412DA3E29CE13497170B9A61F1DA7F9594F6B0B498B4C49FA28D832; ID_SAVE=LrT3kB08auQ=; LANG_SAVE=zh-cn; ck_outer_items_set=; qsm_cust_no=243841656; seller_reg_dt=2016-11-01+14%3a11%3a20; qstore_type=; qstore_status=; APPLY_CONFM_YN=Y; C_SVC_NATIONS=JP%7c; IsOriginSvcNation=Y; OriginSvcNation=JP; EP_NO='
+        'cookie': 'inflow_referer=direct; tracking-devcd-7=Windows_NT_10.0%3a%3aChrome%3a%3aDesktop; tracking-landing-page=0!%3a%3a!; tracking-sessionid=23e4d83f-b419-43a2-9a8d-2a2158bc13fc::2017-07-01 15:10:55; Language=zh-CN; ck_login_sc=Y; ASP.NET_SessionId=mur5cj33pwntjozpiyuth5e2; GiosisGsmJP=A7351A0E9BE35408AA6D5716C666FB6C033FF8A673B49E267BC6BA259FD3CE990A6FF856BCAAD9D34B76B2F6694087E9744582184870434AFEC50EACAEDDB283AAB8B01433F99EAEA665FF03E4AF11807D545798E381D95C0D20DBD5686BFB068035A64C6F7C7A3590C1FD82FA3B16FD3AD3ACFF383D4D4B0C42ABBD28AFC513FA2717B7B0260FB20B22F4744BCA1850604852C38908FDED96D13DFCC88626B3334A1DAD0EA453A1B063B218C79A5401CBDDEFF13ABF5157F244DEF6004470285E506206B24720F5EDCE0393140BF6D3658DE21B53DF71BE4536826247781747470106A8DC39E2D2F96817C23F62734694331EC85E25C4A232D42CA1396DF7146525C04C20C1CE71F42E4CAD366E6BE41535ABB7525C2FA947B03D4B233F982C4B81F5800570A440AA46BC1A018CD20AB7BD39EEE0CA11C39963FC789D2BCF23301D9E51F423171D35D57B43E34352F2864267DD; ID_SAVE=LrT3kB08auQ=; LANG_SAVE=zh-cn; qsm_cust_no=240721731; seller_reg_dt=2015-08-31+11%3a06%3a43; qstore_type=Basic; qstore_status=Approved; APPLY_CONFM_YN=Y; C_SVC_NATIONS=JP%7cUS%7c; IsOriginSvcNation=Y; OriginSvcNation=JP; EP_NO=; ck_outer_items_set=N'
     })
+
+    html = wsp.get_text('http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/ADPlus/ADPlusKeyword.aspx')
+
+    m = re.search(r'"cust_no"\s*:\s*"(\d+)"', html)
+    if m is not None:
+        cust_no = m.group(1)
 
     # 获取投注第一行金额
     fetch_top_price_url = 'http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/GetPlusItemKeywordGroup'
@@ -84,6 +100,7 @@ def do_touzhu(item):
     params = {"keyword": item['keyword'], "plus_type": "KW", "___cache_expire___": str(datetime.datetime.now())}
 
     text = wsp.post(fetch_top_price_url, data=json.dumps(params)).json()
+    org_plus_id = text['d']['org_plus_id']
     if len(text['d']['KW']['list_bid']) > 0:
         price = text['d']['KW']['list_bid'][0]['bid_price']
     else:
@@ -97,7 +114,7 @@ def do_touzhu(item):
     bid_price_list = int(price) + inc
 
     for id in item['gd_no_list']:
-        post = {"org_plus_id_list": "453", "cust_no": "243841656", "user_id": usename, "gd_no": id,
+        post = {"org_plus_id_list": org_plus_id, "cust_no": cust_no, "user_id": usename, "gd_no": id,
                 "sid": id, "bid_price_list": bid_price_list,
                 "bid_start_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
                 "bid_end_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
@@ -106,8 +123,8 @@ def do_touzhu(item):
         result = wsp.post('http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/PlaceBidKeyword',
                           data=json.dumps(post)).json()
 
-        r_result = {'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list, 'id':id}
-        if result['d']['ResultCode']== 0:
+        r_result = {'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list, 'id': id}
+        if result['d']['ResultCode'] == 0:
             r_result['touzhuresult'] = '投注成功'
         else:
             r_result['touzhuresult'] = '投注失败-' + result['d']['ResultMsg']
@@ -131,8 +148,8 @@ def do_touzhuInfo_list(keyword, gd_no_list, id):
         con = sqlite3.connect('qsm.db')
         cur = con.cursor()
         cur.execute('update task set result=?, exec_time=? where id=' + str(id), [str(json.dumps(result)),
-                                                                                 datetime.datetime.now().strftime(
-                                                                                     '%Y-%m-%d %H:%M:%S')])
+                                                                                  datetime.datetime.now().strftime(
+                                                                                      '%Y-%m-%d %H:%M:%S')])
         con.commit()
         con.close()
 
@@ -228,7 +245,7 @@ def add_job(task_id):
     if job is None:
         task = fetch_one('select * from task where id=' + str(task_id))
         task = [task[1], task[4], task[0]]
-        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='interval', seconds=3, args=task)
+        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=14, minute=30, args=task)
 
 
 @app.route('/')
@@ -237,8 +254,7 @@ def index():
 
 
 def hello(*args, **kwg):
-    print(args, kwg)
-
+    print("hello")
 
 
 con = sqlite3.connect('qsm.db')

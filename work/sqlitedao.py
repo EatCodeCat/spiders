@@ -6,7 +6,7 @@ cursor = conn.cursor()
 if __name__ == '__main__':
     cursor.execute('''
             CREATE TABLE task(
-               id           INTeger  PRIMARY KEY autoincrement NOT NULL,
+               id            INTeger  PRIMARY KEY autoincrement NOT NULL,
                name         VARCHAR(50) NULL,
                result       VARCHAR(100) NULL,
                key          VARCHAR(100) NULL,
