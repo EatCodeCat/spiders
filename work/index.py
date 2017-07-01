@@ -240,14 +240,15 @@ def hello(*args, **kwg):
     print(args, kwg)
 
 
-if __name__ == '__main__':
-    con = sqlite3.connect('qsm.db')
-    cur = con.cursor()
-    cur.execute('update task set status=2')
-    con.commit()
-    con.close()
 
-    scheduler = APScheduler()
-    scheduler.init_app(app)
-    scheduler.start()
+con = sqlite3.connect('qsm.db')
+cur = con.cursor()
+cur.execute('update task set status=2')
+con.commit()
+con.close()
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0')
