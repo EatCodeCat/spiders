@@ -12,5 +12,9 @@ if __name__ == '__main__':
                key          VARCHAR(100) NULL,
                gn_id_list   TEXT NULL,
                status       VARCHAR(20) null,
-               exec_time    TEXT NULL
+               exec_time    TEXT NULL,
+               log          TEXT NULL,
+               h             int null,
+               m            int null,
+               s           int null
            );''')

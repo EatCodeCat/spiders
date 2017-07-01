@@ -19,7 +19,12 @@
         </template>
       </el-table-column>
       <el-table-column property="6" label="执行时间" width="150"></el-table-column>
-      <el-table-column label="操作" width="150">
+      <el-table-column property="8" label="周期" width="110">
+        <template scope="scope">
+          <div>{{scope.row[8]}}:{{scope.row[9]}}:{{scope.row[10]}}</div>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="230">
         <template scope="scope">
           <el-button size="small" @click="handleEdit(scope.$index, scope.row)">{{scope.row[5] == 0 ? '暂停' : '执行'}}</el-button>
           <el-button size="small" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
@@ -29,18 +34,22 @@
     <el-dialog title="任务" :visible.sync="dialogFormVisible">
       <el-form :model="form" label-width="120px" ref="form">
         <el-form-item prop="name" label="任务名称" :rules="{
-                  required: true, message: '任务名称不能为空', trigger: 'blur'}">
+                        required: true, message: '任务名称不能为空', trigger: 'blur'}">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
         <el-form-item prop="key" label="关键字" :rules="{
-                  required: true, message: '关键字不能为空', trigger: 'blur'
-                }">
+                        required: true, message: '关键字不能为空', trigger: 'blur'
+                      }">
           <el-input v-model="form.key"></el-input>
         </el-form-item>
         <el-form-item prop="gn_id_list" label="商品ID列表" :rules="{
-                  required: true, message: '商品ID列表不能为空', trigger: 'blur'
-                }">
+                        required: true, message: '商品ID列表不能为空', trigger: 'blur'
+                      }">
           <el-input v-model="form.gn_id_list" placeholder="id列表用,隔开"></el-input>
+        </el-form-item>
+        <el-form-item prop="loop_time" label="每天执行时间">
+          <el-time-picker v-model="form.loop_time" placeholder="每天执行时间">
+          </el-time-picker>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -58,7 +67,7 @@ export default {
     return {
       dialogFormVisible: false,
       tableData: [],
-      form: {}
+      form: { loop_time: new Date() }
     }
   },
   created() {
@@ -66,15 +75,15 @@ export default {
 
   },
   methods: {
-   
-    parse(it){
-      try{
+
+    parse(it) {
+      try {
         return JSON.parse(it)
       }
-      catch(e){
+      catch (e) {
 
       }
-       
+
     },
     loadAll() {
       this.$http.get(host + '/list').then((res) => {
@@ -86,7 +95,10 @@ export default {
 
       this.$refs['form'].validate((valid) => {
         if (valid) {
-          this.$http.get(host + '/add/' + encodeURIComponent(`${form.name}/${form.key}/${form.gn_id_list}`)).then((res) => {
+          var h = form.loop_time.getHours();
+          var m = form.loop_time.getMinutes();
+          var s = form.loop_time.getSeconds();
+          this.$http.get(host + '/add/' + `${form.name}/${form.key}/${form.gn_id_list}/${h}/${m}/${s}`).then((res) => {
             this.$message({
               showClose: true,
               message: '保存成功',

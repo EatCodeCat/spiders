@@ -74,6 +74,8 @@ execMins = ''  # 执行分钟
 
 
 def do_touzhu(item):
+    print('查询关键字:' + item['keyword'])
+
     result_list = []
     wsp = WebSpider({
         'host': 'qsm.qoo10.jp',
@@ -113,7 +115,8 @@ def do_touzhu(item):
     inc = item['inc']
     bid_price_list = int(price) + inc
 
-    for id in item['gd_no_list']:
+    for gid in item['gd_no_list']:
+        print('开始投注ID:' + gid)
         post = {"org_plus_id_list": org_plus_id, "cust_no": cust_no, "user_id": usename, "gd_no": id,
                 "sid": id, "bid_price_list": bid_price_list,
                 "bid_start_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
@@ -132,13 +135,14 @@ def do_touzhu(item):
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
     return result_list
+    print('开始投注完成:')
 
 
 app = Flask(__name__, static_folder='dist', template_folder='dist')
 
 
 def do_touzhuInfo_list(keyword, gd_no_list, id):
-    app.logger.info('开始任务key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, id)
+    # app.logger.info('开始任务key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, id)
     try:
         result = do_touzhu({
             'keyword': keyword,  # 关键字
@@ -187,52 +191,49 @@ def fetch_one(sql, *arg):
 
 @app.route('/api/pause/<id>')
 def scheduler_pause(id):
-    execute_sql('update task set status=1 where id=?', id)
-
     job_id = 'task_' + id
     job = scheduler.get_job(job_id)
-    if job is None:
-        add_job(job_id)
-    else:
+    if job is not None:
         scheduler.pause_job(job_id)
+    execute_sql('update task set status=1 where id=?', id)
     return 'pause!'
 
 
 @app.route('/api/resume/<id>')
 def scheduler_resume(id):
-    execute_sql('update task set status=0 where id=?', id)
     job_id = 'task_' + id
     job = scheduler.get_job(job_id)
     if job is None:
         add_job(id)
     else:
         scheduler.resume_job(job_id)
+    execute_sql('update task set status=0 where id=?', id)
     return 'resume'
 
 
 @app.route('/api/remove/<id>')
 def scheduler_remove(id):
-    execute_sql('delete from task where id=?', id)
     job_id = 'task_' + id
     job = scheduler.get_job(job_id)
     if job is not None:
         scheduler.delete_job(job_id)
+    execute_sql('delete from task where id=?', id)
     return jsonify(result=0)
 
 
 @app.route('/api/list')
 def list():
     cur = get_db().cursor()
-    cursor = cur.execute('select * from task')
+    cursor = cur.execute('select * from task order by id desc')
     all = cursor.fetchall()
     return jsonify(all)
 
 
-@app.route('/api/add/<name>/<key>/<idlist>')
-def add_scheduler(name, key, idlist):
+@app.route('/api/add/<name>/<key>/<idlist>/<h>/<m>/<s>')
+def add_scheduler(name, key, idlist, h, m, s):
     # status 0 等待执行， 1 暂停, 2 停止
-    arg = [name, '', key, idlist, '0', datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
-    execute_sql('insert into task (name, result, key,gn_id_list, status, exec_time) values (?,?,?,?,?,?)', *arg)
+    arg = [name, key, idlist, '0', h, m, s]
+    execute_sql('insert into task (name, key,gn_id_list, status, h, m, s) values (?,?,?,?,?,?,?)', *arg)
     cur = get_db().cursor()
     cursor = cur.execute('select max(id) from task')
     id = cursor.fetchone()[0]
@@ -240,23 +241,30 @@ def add_scheduler(name, key, idlist):
     return jsonify(result=0)
 
 
+def now_time_str():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
 def add_job(task_id):
     job = scheduler.get_job(task_id)
     if job is None:
         task = fetch_one('select * from task where id=' + str(task_id))
-        task = [task[1], task[4], task[0]]
-        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=8, minute=49, second=50, args=task)
+        args = [task[3], task[4], task[0]]
+        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=task[8], minute=task[9], second=task[10], args=args)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/time')
 def time():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+
 def hello(*args, **kwg):
     print("hello")
+
 
 con = sqlite3.connect('qsm.db')
 cur = con.cursor()
@@ -268,4 +276,5 @@ scheduler.init_app(app)
 scheduler.start()
 
 if __name__ == '__main__':
+    app.debug = True
     app.run(host='0.0.0.0')
