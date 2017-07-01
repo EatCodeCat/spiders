@@ -72,6 +72,14 @@ export default {
   },
   created() {
     this.loadAll()
+    setInterval(()=>{
+        var now = new Date();
+        this.tableData.forEach((it)=>{
+          if(it[8] == now.getHours() && it[9] == now.getMinutes() && it[10] == now.getSeconds()){
+                this.loadAll();
+          }
+        })
+    }, 900)
 
   },
   methods: {
@@ -81,7 +89,6 @@ export default {
         return JSON.parse(it)
       }
       catch (e) {
-
       }
 
     },
@@ -98,7 +105,7 @@ export default {
           var h = form.loop_time.getHours();
           var m = form.loop_time.getMinutes();
           var s = form.loop_time.getSeconds();
-          this.$http.get(host + '/add/' + `${form.name}/${form.key}/${form.gn_id_list}/${h}/${m}/${s}`).then((res) => {
+          this.$http.get(host + '/add/' + `${encodeURIComponent(form.name)}/${encodeURIComponent(form.key)}/${encodeURIComponent(form.gn_id_list)}/${h}/${m}/${s}`).then((res) => {
             this.$message({
               showClose: true,
               message: '保存成功',

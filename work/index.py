@@ -74,7 +74,8 @@ execMins = ''  # 执行分钟
 
 
 def do_touzhu(item):
-    print('查询关键字:' + item['keyword'])
+
+    app.logger.info('查询关键字--key:%s', item['keyword'])
 
     result_list = []
     wsp = WebSpider({
@@ -106,41 +107,64 @@ def do_touzhu(item):
     if len(text['d']['KW']['list_bid']) > 0:
         price = text['d']['KW']['list_bid'][0]['bid_price']
     else:
+        app.logger.info('关键字没有投注金额--end')
         result_list.append({
             'touzhuresult': '关键字没有投注金额'
         })
         return result_list
 
+    app.logger.info('获取投注第一行金额--price:%s', price)
     # 投注
     inc = item['inc']
     bid_price_list = int(price) + inc
 
     for gid in item['gd_no_list']:
-        print('开始投注ID:' + gid)
-        post = {"org_plus_id_list": org_plus_id, "cust_no": cust_no, "user_id": usename, "gd_no": id,
-                "sid": id, "bid_price_list": bid_price_list,
+
+        app.logger.info('开始投注ID--:%s', gid)
+        post = {"org_plus_id_list": org_plus_id, "cust_no": cust_no, "user_id": usename, "gd_no": gid,
+                "sid": gid, "bid_price_list": bid_price_list,
                 "bid_start_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
                 "bid_end_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
                 "landing_type": "", "landing_url": "", "img_url": "", "remark": "", "display_type": "B",
                 "___cache_expire___": str(datetime.datetime.now())}
+        post_params = json.dumps(post)
         result = wsp.post('http://qsm.qoo10.jp/GMKT.INC.Gsm.Web/swe_ADPlusBizService.asmx/PlaceBidKeyword',
-                          data=json.dumps(post)).json()
-
-        r_result = {'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list, 'id': id}
+                          data=post_params).json()
+        r_result = {'top_price': price, 'inc': inc, 'bid_price_list': bid_price_list, 'id': gid}
         if result['d']['ResultCode'] == 0:
             r_result['touzhuresult'] = '投注成功'
         else:
             r_result['touzhuresult'] = '投注失败-' + result['d']['ResultMsg']
         result_list.append(r_result)
+        app.logger.info('投注结果--:%s', str(result))
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
     return result_list
 
+
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
 app = Flask(__name__, static_folder='dist', template_folder='dist')
 
+server_log = TimedRotatingFileHandler('server.log', 'D')
+server_log.setLevel(logging.DEBUG)
+server_log.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s'
+))
 
-def do_touzhuInfo_list(keyword, gd_no_list, id):
-    # app.logger.info('开始任务key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, id)
+error_log = TimedRotatingFileHandler('error.log', 'D')
+error_log.setLevel(logging.ERROR)
+error_log.setFormatter(logging.Formatter(
+    '%(asctime)s: %(message)s [in %(pathname)s:%(lineno)d]'
+))
+
+app.logger.addHandler(server_log)
+app.logger.addHandler(error_log)
+
+
+def do_touzhuInfo_list(keyword, gd_no_list, _id):
+    app.logger.info('开始任务--key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, _id)
     con = sqlite3.connect('qsm.db')
     cur = con.cursor()
     try:
@@ -149,16 +173,10 @@ def do_touzhuInfo_list(keyword, gd_no_list, id):
             'gd_no_list': gd_no_list.split(','),  # 投注id
             'inc': 50
         })
-
-        cur.execute('update task set result=?, exec_time=? where id=' + str(id), [str(json.dumps(result)),
-                                                                                  datetime.datetime.now().strftime(
-                                                                                      '%Y-%m-%d %H:%M:%S')])
+        cur.execute('update task set result=?, exec_time=? where id=' + str(_id), [json.dumps(result), now_time_str()])
     except Exception as e:
-        cur.execute('update task set result=?, exec_time=? where id=' + str(id), ['任务异常'+ str(e),
-                                                                                  datetime.datetime.now().strftime(
-                                                                                      '%Y-%m-%d %H:%M:%S')])
+        cur.execute('update task set result=?, exec_time=? where id=' + str(_id), [json.dump({'touzhuresult':'任务异常' + str(e)}), now_time_str()])
         app.logger.exception('异常任务', e)
-
     con.commit()
     con.close()
 
@@ -191,35 +209,52 @@ def fetch_one(sql, *arg):
     return cur.fetchone()
 
 
-@app.route('/api/pause/<id>')
-def scheduler_pause(id):
-    job_id = 'task_' + id
+def now_time_str():
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+def test_task(*args):
+    print(args)
+
+
+def add_job(task_id):
+    job = scheduler.get_job("task_" + str(task_id))
+    if job is None:
+        task = fetch_one('select * from task where id=' + str(task_id))
+        args = [task[3], task[4], task[0]]
+        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=task[8], minute=task[9],
+                          second=task[10], args=args)
+
+
+@app.route('/api/pause/<_id>')
+def scheduler_pause(_id):
+    job_id = 'task_' + _id
     job = scheduler.get_job(job_id)
     if job is not None:
         scheduler.pause_job(job_id)
-    execute_sql('update task set status=1 where id=?', id)
+    execute_sql('update task set status=1 where id=?', _id)
     return 'pause!'
 
 
-@app.route('/api/resume/<id>')
-def scheduler_resume(id):
-    job_id = 'task_' + id
+@app.route('/api/resume/<_id>')
+def scheduler_resume(_id):
+    job_id = 'task_' + _id
     job = scheduler.get_job(job_id)
     if job is None:
-        add_job(id)
+        add_job(_id)
     else:
         scheduler.resume_job(job_id)
-    execute_sql('update task set status=0 where id=?', id)
+    execute_sql('update task set status=0 where id=?', _id)
     return 'resume'
 
 
-@app.route('/api/remove/<id>')
-def scheduler_remove(id):
-    job_id = 'task_' + id
+@app.route('/api/remove/<_id>')
+def scheduler_remove(_id):
+    job_id = 'task_' + _id
     job = scheduler.get_job(job_id)
     if job is not None:
         scheduler.delete_job(job_id)
-    execute_sql('delete from task where id=?', id)
+    execute_sql('delete from task where id=?', _id)
     return jsonify(result=0)
 
 
@@ -232,9 +267,9 @@ def list():
 
 
 @app.route('/api/add/<name>/<key>/<idlist>/<h>/<m>/<s>')
-def add_scheduler(name, key, idlist, h, m, s):
+def add_scheduler(name:str, key:str, idlist, h, m, s):
     # status 0 等待执行， 1 暂停, 2 停止
-    arg = [name, key, idlist, '0', h, m, s]
+    arg = [name.strip(), key.strip(), idlist.strip(), '0', h, m, s]
     execute_sql('insert into task (name, key,gn_id_list, status, h, m, s) values (?,?,?,?,?,?,?)', *arg)
     cur = get_db().cursor()
     cursor = cur.execute('select max(id) from task')
@@ -242,17 +277,6 @@ def add_scheduler(name, key, idlist, h, m, s):
     add_job(id)
     return jsonify(result=0)
 
-
-def now_time_str():
-    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
-def add_job(task_id):
-    job = scheduler.get_job(task_id)
-    if job is None:
-        task = fetch_one('select * from task where id=' + str(task_id))
-        args = [task[3], task[4], task[0]]
-        scheduler.add_job('task_' + str(task_id), do_touzhuInfo_list, trigger='cron', hour=task[8], minute=task[9], second=task[10], args=args)
 
 @app.route('/')
 def index():
@@ -262,10 +286,6 @@ def index():
 @app.route('/time')
 def time():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
-def hello(*args, **kwg):
-    print("hello")
 
 
 con = sqlite3.connect('qsm.db')
@@ -278,4 +298,5 @@ scheduler.init_app(app)
 scheduler.start()
 
 if __name__ == '__main__':
+    app.debug = True
     app.run(host='0.0.0.0')
