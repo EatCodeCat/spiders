@@ -1,15 +1,16 @@
 import sqlite3
-import datetime
 
-
-def food(*args):
-    print(args)
+conn = sqlite3.connect('qsm.db')
+cursor = conn.cursor()
 
 if __name__ == '__main__':
-    con = sqlite3.connect('qsm.db')
-    cur = con.cursor()
-    cur.execute('update task set result=?,exec_time=? where id=3',["{'524152697': {'touzhuresult:': {'d': {'__type': 'GMKT.INC.Framework.Core.StdResult', 'ResultCode': -21, 'ResultMsg': 'FAIL[-21]'}}, 'top_price': 650.0, 'inc': 50, 'bid_price_list': 700}}"
-        ,datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')]
-                )
-    con.commit()
-    con.close()
+    cursor.execute('''
+            CREATE TABLE task(
+               id           INTeger  PRIMARY KEY autoincrement NOT NULL,
+               name         VARCHAR(50) NULL,
+               result       VARCHAR(100) NULL,
+               key          VARCHAR(100) NULL,
+               gn_id_list   TEXT NULL,
+               status       VARCHAR(20) null,
+               exec_time    TEXT NULL
+           );''')
