@@ -27,9 +27,28 @@ userinfo = {
 }
 pwd = ''  # 密码
 
+log_file = 'server.log'
+error_log = 'error.log'
+
+
+def log_info(msg: str, *args):
+    try:
+        with open(log_file, 'a') as f:
+            f.writelines(now_time_str() + '--' + (msg % args) + '\r\n')
+    except:
+        pass
+
+
+def log_error(msg: str, *args):
+    try:
+        with open(error_log, 'a') as f:
+            f.writelines(now_time_str() + '--' + (msg % args) + '\r\n')
+    except:
+        pass
+
 
 def do_touzhu(item):
-    app.logger.info('查询关键字--key:%s', item['keyword'])
+    log_info('查询关键字--key:%s', item['keyword'])
 
     result_list = []
     wsp = WebSpider({
@@ -61,19 +80,19 @@ def do_touzhu(item):
     if len(text['d']['KW']['list_bid']) > 0:
         price = text['d']['KW']['list_bid'][0]['bid_price']
     else:
-        app.logger.info('关键字没有投注金额--end')
+        log_info('关键字没有投注金额--end')
         result_list.append({
             'touzhuresult': '关键字没有投注金额'
         })
         return result_list
 
-    app.logger.info('获取投注第一行金额--price:%s', price)
+    log_info('获取投注第一行金额--price:%s', price)
     # 投注
     inc = item['inc']
     bid_price_list = int(price) + inc
 
     for gid in item['gd_no_list']:
-        app.logger.info('开始投注ID--:%s', gid)
+        log_info('开始投注ID--:%s', gid)
         post = {"org_plus_id_list": org_plus_id, "cust_no": cust_no, "user_id": usename, "gd_no": gid,
                 "sid": gid, "bid_price_list": bid_price_list,
                 "bid_start_dt": str(datetime.datetime.today().strftime('%Y-%m-%d')),
@@ -89,35 +108,37 @@ def do_touzhu(item):
         else:
             r_result['touzhuresult'] = str(gid) + '投注失败-' + result['d']['ResultMsg']
         result_list.append(r_result)
-        app.logger.info('投注结果--:%s', str(result))
+        log_info('投注结果--:%s', str(result))
 
     # {__type: "GMKT.INC.Framework.Core.StdResult", ResultCode: 0, ResultMsg: "SUCCESS"}
     return result_list
 
 
 import logging
-from logging.handlers import TimedRotatingFileHandler
+
+# from logging.handlers import TimedRotatingFileHandler
 
 app = Flask(__name__, static_folder='dist', template_folder='dist')
 
-server_log = TimedRotatingFileHandler('server.log', 'D')
-server_log.setLevel(logging.DEBUG)
-server_log.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s\r\n'
-))
 
-error_log = TimedRotatingFileHandler('error.log', 'D')
-error_log.setLevel(logging.ERROR)
-error_log.setFormatter(logging.Formatter(
-    '%(asctime)s: %(message)s [in %(pathname)s:%(lineno)d]\r\n'
-))
-
-app.logger.addHandler(server_log)
-app.logger.addHandler(error_log)
+# server_log = TimedRotatingFileHandler('server.log', 'D')
+# server_log.setLevel(logging.DEBUG)
+# server_log.setFormatter(logging.Formatter(
+#     '%(asctime)s %(levelname)s: %(message)s\r\n'
+# ))
+#
+# error_log = TimedRotatingFileHandler('error.log', 'D')
+# error_log.setLevel(logging.ERROR)
+# error_log.setFormatter(logging.Formatter(
+#     '%(asctime)s: %(message)s [in %(pathname)s:%(lineno)d]\r\n'
+# ))
+#
+# app.logger.addHandler(server_log)
+# app.logger.addHandler(error_log)
 
 
 def do_touzhuInfo_list(keyword, gd_no_list, _id):
-    app.logger.info('开始任务--key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, _id)
+    log_info('开始任务--key:%s, gd_no_list:%s, id:%s', keyword, gd_no_list, _id)
     con = sqlite3.connect('qsm.db')
     cur = con.cursor()
     try:
@@ -130,7 +151,7 @@ def do_touzhuInfo_list(keyword, gd_no_list, _id):
     except Exception as e:
         cur.execute('update task set result=?, exec_time=? where id=' + str(_id),
                     [json.dump({'touzhuresult': '任务异常' + str(e)}), now_time_str()])
-        app.logger.exception('异常任务', e)
+        log_error('异常任务', e)
     con.commit()
     con.close()
 
@@ -229,7 +250,7 @@ def add_scheduler(name: str, key: str, idlist, h, m, s):
     cursor = cur.execute('select max(id) from task')
     id = cursor.fetchone()[0]
     add_job(id)
-    app.logger.info('添加一个任务--key:%s, gd_no_list:%s, id:%s', *arg)
+    log_info('添加一个任务--key:%s, gd_no_list:%s,status:%s, id:%s, time=%s:%s:%s', *arg)
     return jsonify(result=0)
 
 
@@ -284,4 +305,4 @@ if __name__ == '__main__':
     try:
         app.run(host='0.0.0.0')
     except Exception as e:
-        app.logger.exception('app异常任务', e)
+        log_error('app异常任务', e)
