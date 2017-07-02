@@ -103,13 +103,13 @@ app = Flask(__name__, static_folder='dist', template_folder='dist')
 server_log = TimedRotatingFileHandler('server.log', 'D')
 server_log.setLevel(logging.DEBUG)
 server_log.setFormatter(logging.Formatter(
-    '%(asctime)s %(levelname)s: %(message)s'
+    '%(asctime)s %(levelname)s: %(message)s\r\n'
 ))
 
 error_log = TimedRotatingFileHandler('error.log', 'D')
 error_log.setLevel(logging.ERROR)
 error_log.setFormatter(logging.Formatter(
-    '%(asctime)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    '%(asctime)s: %(message)s [in %(pathname)s:%(lineno)d]\r\n'
 ))
 
 app.logger.addHandler(server_log)
@@ -243,6 +243,32 @@ def time():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
+@app.route('/log_sever')
+def log():
+    f = open('server.log', 'r')
+    str = []
+    while True:
+        line = f.readline()
+        str.append(line)
+        if len(line) == 0:  # Zero length indicates EOF
+            break
+    f.close()
+    return '<br/>'.join(str)
+
+
+@app.route('/log_error')
+def error_log():
+    f = open('error.log', 'r')
+    str = []
+    while True:
+        line = f.readline()
+        str.append(line)
+        if len(line) == 0:  # Zero length indicates EOF
+            break
+    f.close()
+    return '<br/>'.join(str)
+
+
 con = sqlite3.connect('qsm.db')
 cur = con.cursor()
 cur.execute('update task set status=2')
@@ -252,7 +278,6 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'debug':
         app.debug = True
@@ -260,4 +285,3 @@ if __name__ == '__main__':
         app.run(host='0.0.0.0')
     except Exception as e:
         app.logger.exception('app异常任务', e)
-
