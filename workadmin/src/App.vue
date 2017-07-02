@@ -1,5 +1,6 @@
 <template>
   <div>
+    <strong>服务器时间：<span v-html="serverTime"></span></strong>
     <div class="task-new">
       <el-button @click="dialogFormVisible = true" type="info">新增</el-button>
     </div>
@@ -70,6 +71,7 @@ var host = '/api'
 export default {
   data() {
     return {
+      serverTime: '',
       dialogFormVisible: false,
       tableData: [],
       form: {
@@ -89,6 +91,11 @@ export default {
         }
       })
     }, 900)
+    setInterval(() => {
+      this.$http.get(host + '/time').then((res) => {
+        this.serverTime = res.body;
+      })
+    }, 1000)
 
   },
   methods: {

@@ -259,7 +259,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/time')
+@app.route('/api/time')
 def time():
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
