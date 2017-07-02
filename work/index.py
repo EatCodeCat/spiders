@@ -229,6 +229,7 @@ def add_scheduler(name: str, key: str, idlist, h, m, s):
     cursor = cur.execute('select max(id) from task')
     id = cursor.fetchone()[0]
     add_job(id)
+    app.logger.info('添加一个任务--key:%s, gd_no_list:%s, id:%s', *arg)
     return jsonify(result=0)
 
 
@@ -251,6 +252,10 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
+
 if __name__ == '__main__':
-    app.debug = True
+    sys.argv[1], sys.argv[2]
+
+    if sys.argv[1] == 'debug':
+        app.debug = True
     app.run(host='0.0.0.0')
