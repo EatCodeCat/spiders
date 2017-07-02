@@ -34,18 +34,22 @@
     <el-dialog title="任务" :visible.sync="dialogFormVisible">
       <el-form :model="form" label-width="120px" ref="form">
         <el-form-item prop="name" label="任务名称" :rules="{
-                        required: true, message: '任务名称不能为空', trigger: 'blur'}">
+                                    required: true, message: '任务名称不能为空', trigger: 'blur'}">
           <el-input v-model="form.name"></el-input>
         </el-form-item>
         <el-form-item prop="key" label="关键字" :rules="{
-                        required: true, message: '关键字不能为空', trigger: 'blur'
-                      }">
+                                    required: true, message: '关键字不能为空', trigger: 'blur'
+                                  }">
           <el-input v-model="form.key"></el-input>
         </el-form-item>
-        <el-form-item prop="gn_id_list" label="商品ID列表" :rules="{
-                        required: true, message: '商品ID列表不能为空', trigger: 'blur'
+        <el-form-item v-for="(domain, index) in form.ids" :label="'商品ID-' + index" :key="domain.key" :prop="'ids.' + index + '.value'" :rules="{
+                        required: true, message: '商品ID', trigger: 'blur'
                       }">
-          <el-input v-model="form.gn_id_list" placeholder="id列表用,隔开"></el-input>
+          <el-col :span="15">
+            <el-input v-model="domain.value"></el-input>
+          </el-col>
+          <el-col :span="1"></el-col>
+          <el-button @click.prevent="removeDomain(domain)">删除</el-button>
         </el-form-item>
         <el-form-item prop="loop_time" label="每天执行时间">
           <el-time-picker v-model="form.loop_time" placeholder="每天执行时间">
@@ -53,6 +57,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
+        <el-button @click="addDomain">新增ID</el-button>
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="save">确 定</el-button>
       </div>
@@ -67,18 +72,22 @@ export default {
     return {
       dialogFormVisible: false,
       tableData: [],
-      form: { loop_time: new Date() }
+      form: {
+        loop_time: new Date(), ids: [{
+          value: ''
+        }]
+      }
     }
   },
   created() {
     this.loadAll()
-    setInterval(()=>{
-        var now = new Date();
-        this.tableData.forEach((it)=>{
-          if(it[8] == now.getHours() && it[9] == now.getMinutes() && it[10] == now.getSeconds()){
-                this.loadAll();
-          }
-        })
+    setInterval(() => {
+      var now = new Date();
+      this.tableData.forEach((it) => {
+        if (it[8] == now.getHours() && it[9] == now.getMinutes() && it[10] == now.getSeconds()) {
+          this.loadAll();
+        }
+      })
     }, 900)
 
   },
@@ -97,6 +106,18 @@ export default {
         this.tableData = res.body;
       })
     },
+    removeDomain(item) {
+      var index = this.form.ids.indexOf(item)
+      if (index !== -1) {
+        this.form.ids.splice(index, 1)
+      }
+    },
+    addDomain() {
+      this.form.ids.push({
+        value: '',
+        key: Date.now()
+      });
+    },
     save() {
       var form = this.form;
 
@@ -105,6 +126,10 @@ export default {
           var h = form.loop_time.getHours();
           var m = form.loop_time.getMinutes();
           var s = form.loop_time.getSeconds();
+
+          form.gn_id_list = form.ids.map((it) => {
+            return it.value
+          }).join(',')
           this.$http.get(host + '/add/' + `${encodeURIComponent(form.name)}/${encodeURIComponent(form.key)}/${encodeURIComponent(form.gn_id_list)}/${h}/${m}/${s}`).then((res) => {
             this.$message({
               showClose: true,
