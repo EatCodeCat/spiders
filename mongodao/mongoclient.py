@@ -20,7 +20,7 @@ class MClient:
     def ObjectId(self, _id):
         return ObjectId(_id)
 
-    def find(self):
+    def find(self, *args, **kwargs):
         return self.collection.find()
 
     def find_one(self, **filter):

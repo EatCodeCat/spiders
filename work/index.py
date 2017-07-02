@@ -37,8 +37,6 @@ def log_info(msg: str, *args):
             f.writelines(now_time_str() + '--' + (msg % args) + '\r\n')
     except:
         pass
-
-
 def log_error(msg: str, *args):
     try:
         with open(error_log, 'a') as f:
