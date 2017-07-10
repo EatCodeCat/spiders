@@ -43,6 +43,9 @@ class MClient:
     def insert_find_one(self):
         self.collection.insert_one()
 
+    def aggregate(self, pipeline, **kwargs):
+        return self.collection.aggregate(pipeline, **kwargs)
+
     @property
     def _id(self):
         return self.collection._id

@@ -25,9 +25,8 @@ def k_stock():
     stock_list = basic_model.find()
     for stock in stock_list:
         print(stock['code'])
-        k = ts.get_k_data(stock['code'])
+        k = ts.get_k_data(stock['code'], start='2017-07-01')
         if len(k) > 0:
-
             data = json.loads(k.to_json(orient='records'))
             k_model.insert(data)
 
