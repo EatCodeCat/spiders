@@ -226,7 +226,9 @@ def scheduler_remove(_id):
     job_id = 'task_' + _id
     job = scheduler.get_job(job_id)
     if job is not None:
+        scheduler.pause_job(job_id)
         scheduler.delete_job(job_id)
+        log_info('删除一个任务-'+job_id)
     execute_sql('delete from task where id=?', _id)
     return jsonify(result=0)
 

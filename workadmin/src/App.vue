@@ -6,6 +6,7 @@
     </div>
     <el-table :data="tableData" border style="width: 100%">
       <el-table-column type="index" label="序号" width="80"></el-table-column>
+      <el-table-column property="0" label="ID" width="80"></el-table-column>
       <el-table-column property="1" label="任务名称" width="110"></el-table-column>
       <el-table-column property="2" label="结果">
         <template scope="scope">
