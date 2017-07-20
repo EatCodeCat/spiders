@@ -22,10 +22,10 @@ k_model = stockmodel.KStockModel()
 #     }
 # ])
 
-maxlist = k_model.find({'date': '2017-07-07'})
+maxlist = k_model.find({'date': '2017-07-20'})
 
 minlist = k_model.aggregate([{
-    '$match': {'date': {'$gt': '2017-04-01'}}}
+    '$match': {'date': {'$gt': '2017-07-01'}}}
     , {
         '$group':
             {
@@ -44,7 +44,7 @@ for stock in maxlist:
 stock_list = basic_model.find()
 stock_dict2 = {item['code']: item for item in stock_list if float(item['timeToMarket']) < 20170101}
 
-with open('20170401-20170707.csv', 'w') as f:
+with open('20170701-20170720.csv', 'w') as f:
     f.write('code,name,industry,min,max,m_growth\n');
     for stock in minlist:
         code = stock['_id']
@@ -53,6 +53,8 @@ with open('20170401-20170707.csv', 'w') as f:
             stock_dict[code]['min'] = val
             max_p = stock_dict[code]['max']
             m_growth = ((max_p - val) / val) * 100
-            f.writelines('{0},{1},{2},{3},{4},{5}%\n'.format(code, stock_dict2[code]['name'],stock_dict2[code]['industry'], val, max_p, m_growth))
+            f.writelines(
+                '{0},{1},{2},{3},{4},{5}%\n'.format(code, stock_dict2[code]['name'], stock_dict2[code]['industry'], val,
+                                                    max_p, m_growth))
 
 print('done')
