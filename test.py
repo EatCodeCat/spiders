@@ -1,47 +1,17 @@
-# from  mongodao.yellohubmodel import VideosModel
-# from collections import Counter
-# import jieba
-# import jieba.analyse
-# model = VideosModel()
+# import datetime
+# now =datetime.datetime.now()
+# n_h, n_m, n_s, n_ms = now.hour, now.minute, now.second, now.microsecond
 #
-# jieba.set_dictionary('dict.txt.big.txt')
 #
-# c = model.find()
-#
-# tag_list = []
-# title_list = []
-#
-# for item in c:
-#     # title_list.append(item['title'])
-#     # seg_list = jieba.cut(item['title'])
-#     # tag_list += seg_list
-#     # print(", ".join(seg_list))
-#     item['tag_list'] = [it for it in item['tag_list'] if it != '动漫']
-#     model.replace_one(item, **{'_id':item['_id']})
+# print(n_h,n_m,n_s,n_ms)
 
+a = set()
 
-#tags =jieba.analyse.extract_tags(''.join(title_list), topK=50,withWeight=True)
-# Counter(tag_list)
-# print(Counter(tag_list))
+a.add(1)
+a.add(2)
+a.add(5)
+a.add(6)
 
-def hello():
-    print('hello')
-def pasue():
-    scheduler.pause()
-    print('pasue')
+a.remove(6)
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-if __name__ == '__main__':
-    scheduler = BlockingScheduler()
-    scheduler.add_job(hello, 'interval', seconds=3)
-
-    scheduler.add_job(pasue, 'cron', second=50)
-
-    scheduler.start()
-
-
-
-
-
-
-
+print(a)
